@@ -1,0 +1,32 @@
+{
+    "name": "@x-drive/launch-example-d",
+    "version": "1.0.0",
+    "description": "测试包 D",
+    "private": true,
+    "useWorkspaces": true,
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "author": "",
+    "license": "ISC",
+    "sequence": 4,
+    "isServices": true,
+    "scripts": {
+        "dev": "swc src --config-file .swcrc -d dist -w",
+        "build": "swc src --config-file .swcrc -d dist",
+        "start-dev": "cross-env NODE_ENV=development node ./dist/index.js",
+        "start-prod": "cross-env NODE_ENV=production node ./dist/index.js"
+    },
+    "dependencies": {
+        "cross-env": "7.0.3",
+        "@x-drive/launch-example-b": "^1.0.0",
+        "@x-drive/launch-example-a": "^1.0.0",
+        "@x-drive/launch-example-c": "^1.0.0"
+    },
+    "devDependencies": {
+        "tslib": "2.3.0",
+        "typescript": "4.3.4",
+        "@swc/cli": "0.1.57",
+        "@swc/core": "1.2.172",
+        "@types/node": "16.11.40"
+    }
+}

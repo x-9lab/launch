@@ -1,0 +1,23 @@
+{
+    "name": "@x-drive/launch-example",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "private": true,
+    "useWorkspaces": true,
+    "scripts": {
+        "boot": "lerna bootstrap",
+        "launch": "../dist/bin/launch"
+    },
+    "devDependencies": {
+        "lerna": "^4.0.0"
+    },
+    "author": "digiaries <digiaries@hotmail.com>",
+    "license": "ISC",
+    "workspaces": {
+        "packages": [
+            "packages/*"
+        ],
+        "nohoist": []
+    }
+}

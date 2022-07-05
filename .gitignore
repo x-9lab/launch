@@ -1,0 +1,91 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+.sass-cache
+node_modules
+.DS_Store
+*.bak
+*.tmp
+Thumbs.db
+
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.rar
+*.tar
+*.zip
+*.tgz
+*.tar.gz
+release/
+icon-release/
+
+# Logs and databases #
+######################
+*.log
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Nodejs files #
+################
+node_modules/
+.inited
+.pkg
+
+# Dev files #
+#############
+.idea/
+.idea
+
+# Dist files #
+##############
+dist/
+_dist/
+package
+
+# Compiled files #
+##################
+tmp/
+*.pid
+compiled/
+_compiled/
+
+# Log files #
+##############
+private/logs/
+logs/
+log/
+
+# editor files #
+##################
+#.editorconfig
+.jsbeautifyrc
+.tern-project
+
+# local config
+config.lo.json
+webpack.lo.config.js
+config.lo.ts
+config.lo.js
+
+package-lock.json
+
+# 暂时不提交的模块
+data-manager

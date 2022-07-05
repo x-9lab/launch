@@ -1,0 +1,52 @@
+{
+    "name": "@x-drive/launch",
+    "version": "1.0.0",
+    "description": "monorepo 项目管理操作菜单",
+    "main": "dist/index.js",
+    "files": [
+        "dist"
+    ],
+    "bin": {
+        "xlaunch": "dist/bin/launch"
+    },
+    "scripts": {
+        "dev": "swc src -D ./src/bin  --config-file .swcrc -d dist -w",
+        "compile": "swc src -D ./src/bin --config-file .swcrc -d dist",
+        "build": "yarn compile && yarn gen-declaration",
+        "gen-declaration": "tsc --emitDeclarationOnly"
+    },
+    "dependencies": {
+        "colors": "1.4.0",
+        "@x-drive/utils": "1.1.19",
+        "cross-spawn": "7.0.3",
+        "minimist": "1.2.6",
+        "liftoff": "3.1.0",
+        "inquirer": "8.1.2"
+    },
+    "devDependencies": {
+        "tslib": "2.3.0",
+        "chokidar": "3.5.3",
+        "typescript": "4.3.4",
+        "@types/node": "16.11.40",
+        "@types/inquirer": "8.2.1",
+        "@swc/cli": "0.1.57",
+        "@swc/core": "1.2.171"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/x-9lab/launch.git"
+    },
+    "keywords": [
+        "monorepo",
+        "lerna"
+    ],
+    "engines": {
+        "node": ">=14.0.0"
+    },
+    "author": "digiaries <digiaries@hotmail.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/x-9lab/launch/issues"
+    },
+    "homepage": "https://github.com/x-9lab/launch#readme"
+}

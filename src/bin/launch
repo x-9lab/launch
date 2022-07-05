@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+
+const argv = require("minimist")(process.argv.slice(2));
+const Liftoff = require("liftoff");
+const path = require("path");
+
+const configName = ".xlaunchrc";
+
+const cli = new Liftoff({
+    "name": "x-launch"
+    , "processTitle": "X Launch"
+    , "moduleName": "launch"
+    , "configName": "xlaunch.config"
+    , "extensions": {
+        ".js": null
+        , ".json": null
+    }
+});
+
+cli.launch(
+    {
+        "cwd": argv.r || argv.root
+        , "configPath": argv.f || argv.file
+    }
+    , function (env) {
+        var customConfig;
+        if (env.configPath) {
+            try {
+                customConfig = require(env.configPath);
+            } catch (e) { }
+        }
+        const boot = require("../");
+        boot.default(customConfig);
+    }
+);

@@ -1,0 +1,25 @@
+{
+    "name": "@x-drive/launch-example-a",
+    "version": "1.0.0",
+    "description": "测试包 A",
+    "private": true,
+    "useWorkspaces": true,
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "author": "",
+    "license": "ISC",
+    "sequence": 1,
+    "scripts": {
+        "dev": "swc src -D ./src/bin  --config-file .swcrc -d dist -w",
+        "compile": "swc src -D ./src/bin --config-file .swcrc -d dist",
+        "build": "yarn compile && yarn gen-declaration",
+        "gen-declaration": "tsc --emitDeclarationOnly"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "tslib": "2.3.0",
+        "typescript": "4.3.4",
+        "@swc/cli": "0.1.57",
+        "@swc/core": "1.2.172"
+    }
+}
