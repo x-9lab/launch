@@ -1,5 +1,5 @@
 {
-    "name": "@x-drive/launch-example-d",
+    "name": "@x-9lab/launch-example-d",
     "version": "1.0.0",
     "description": "测试包 D",
     "private": true,
@@ -18,9 +18,9 @@
     },
     "dependencies": {
         "cross-env": "7.0.3",
-        "@x-drive/launch-example-b": "^1.0.0",
-        "@x-drive/launch-example-a": "^1.0.0",
-        "@x-drive/launch-example-c": "^1.0.0"
+        "@x-9lab/launch-example-b": "^1.0.0",
+        "@x-9lab/launch-example-a": "^1.0.0",
+        "@x-9lab/launch-example-c": "^1.0.0"
     },
     "devDependencies": {
         "tslib": "2.3.0",

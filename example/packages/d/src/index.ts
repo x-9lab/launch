@@ -1,6 +1,6 @@
-import sayAWord from "@x-drive/launch-example-a";
-import sayBWord from "@x-drive/launch-example-b";
-import sayCWord from "@x-drive/launch-example-c";
+import sayAWord from "@x-9lab/launch-example-a";
+import sayBWord from "@x-9lab/launch-example-b";
+import sayCWord from "@x-9lab/launch-example-c";
 
 function sayDWord() {
     console.log(`@Env [${process.env.NODE_ENV}]`);

@@ -1,5 +1,5 @@
 {
-    "name": "@x-drive/launch",
+    "name": "@x-9lab/launch",
     "version": "1.0.0",
     "description": "monorepo 项目管理操作菜单",
     "main": "dist/index.js",
