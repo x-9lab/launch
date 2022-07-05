@@ -27,6 +27,15 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
   - `wellcomFileName` 启动 Logo 输出文件名，默认为 `version.js`
 
 ## 使用
+1. 将 `@x-9lab/launch` 加入到 `devDependencies`
+1. `package.json` 中调用 `xlaunch`
+  ```json
+  {
+    "scripts": {
+      "launch": "xlaunch"
+    }
+  }
+  ```
 
 ### 代码开发
 `launch` 调用指定包 `package.json` scripts 字段中的 `dev` 命令
