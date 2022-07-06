@@ -1,5 +1,7 @@
 import { isArray } from "@x-drive/utils";
 import crossSpawn from "cross-spawn";
+import path from "path";
+import fs from "fs";
 
 interface IPack {
     /**项目名 */
@@ -21,7 +23,6 @@ export type { IPack };
 
 type IPackages = Record<string, IPack>;
 export type { IPackages }
-
 
 class SpawnError extends Error {
     code: number;
@@ -89,3 +90,50 @@ async function job(names: string[], BuildSequence: string[], task: string, noSor
     }
 }
 export { job };
+
+/**
+ * 检测指定文件是否存在
+ */
+function checkFileStat(pathStr: string, resolve?: boolean) {
+    if (resolve) {
+        pathStr = path.resolve(__dirname, pathStr);
+    }
+    var stat: boolean = false;
+    try {
+        fs.statSync(pathStr);
+        stat = true;
+    } catch (e) {
+        stat = false;
+    }
+    return stat;
+}
+export { checkFileStat }
+
+/**
+ * 查找到文件时的处理函数
+ * @param tmpPath 文件地址
+ */
+type WalkCallback = (tmpPath: string, item: string) => void;
+
+/**
+ * 递归处理文件夹
+ * @param  path      文件目录
+ * @param  floor     层级
+ * @param  callback  查找到文件时的处理函数
+ */
+function walk(path: string, floor: number, callback: WalkCallback) {
+    floor++;
+    var files = fs.readdirSync(path);
+    files.forEach(function (item) {
+        if (!item.startsWith(".") && !item.endsWith(".d.ts")) {
+            var tmpPath = path + "/" + item;
+            var stats = fs.statSync(tmpPath);
+            if (stats.isDirectory() && item.indexOf("@") === -1) {
+                walk(tmpPath, floor, callback);
+            } else if (!stats.isDirectory()) {
+                callback(tmpPath, item);
+            }
+        }
+    });
+}
+export { walk }

@@ -2,7 +2,7 @@
 
 monorepo 类型的项目，在项目规模上一定规模后包含的子项目变多会使开发需要记住不同包的包名和不同的命令，`launch` 在启动的时候会扫描项目目录，根据包 `package.json` 中的信息收集信息并产生相关的操作菜单，为开发提供便捷。
 
-相关字段：
+业务自项目 `package.json` 相关字段：
 - `scripts` 字段中的 `dev` 命令为代码开发命令，`build` 为生产编译命令
 - `scripts` 字段中的 `start-dev` 命令为开发环境启动命令，`start-prod` 为生产环境启动命令
 - `sequence` 用于定义包编译顺序
@@ -25,6 +25,32 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
   - `scriptDirName` Launch 扩展目录名，默认为 `@launch`
   - `cwd` 执行目录，默认为 `process.cwd()`
   - `wellcomFileName` 启动 Logo 输出文件名，默认为 `version.js`
+  - `inquirerDirName` 交互菜单目录名称，默认为 `@inquirer`
+
+## 全局对象
+`launch` 提供了一个全局对象 `xlaunch`，可在 `nodeJs` 环境下直接调用
+- `spawn` spawn 模式执行一条命令
+  ```js
+  xlaunch.spawn("yarn", [answers.type]);
+  ```
+- `EXIT_PACK` 获取一个标准退出选项
+  ```js
+  const menus = [
+    {
+      "name": "关机"
+      , "value": "shutdown"
+    }
+    , xlaunch.EXIT_PACK
+  ];
+  ```
+- `boot` 主启动函数，每个实例只会执行一次
+  ```js
+  xlaunch.boot();
+  ```
+- `loadConfig` 加载项目配置控制文件
+  ```js
+  xlaunch.loadConfig(configPath);
+  ```
 
 ## 使用
 1. 将 `@x-9lab/launch` 加入到 `devDependencies`
@@ -56,9 +82,24 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
 退出 `launch` 的选项操作
 
 ### 定义多个包之间可能存在依赖关系
-在多个包同时编译时需要按照一定顺序进行。`launch` 在执行编译的时候会根据子包的 `package.json` 中的 `sequence` 字段做排序，按数字顺序编译以确保输出结果。开发者需要自己维护这个编译顺序。
+在多个包同时编译时需要按照一定顺序进行。`launch` 在执行的时候会根据子包的 `package.json` 中的 `sequence` 字段做排序，按数字顺序编译以确保输出结果。开发者需要自己维护这个编译顺序。
 
   特殊取值：
     - **709394** 其它未声明 `sequence` 字段的子包，该值由 `launch` 自动添加，请不要占用
     - **-1** 不纳入可操作的包列表
 
+### 自定义菜单
+
+`launch` 初始化时会扫描 `scriptDirName` 指定目录下 `inquirerDirName` 指定的目录中的 `js` 文件并尝试将模块作为新的选项加入到一级选项中
+- 文件名做为新增选项取值
+- 模块必须返回符合 `LaunchInquirerExport` 定义的数据结构
+  ```ts
+  /**用户自定义交互菜单模块导出对象 */
+  interface LaunchInquirerExport {
+    /**交互菜单名称 */
+    name: string;
+
+    /**交互菜单操作函数 */
+    processor(inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]): void;
+  }
+  ```

@@ -2,9 +2,6 @@
 
 const argv = require("minimist")(process.argv.slice(2));
 const Liftoff = require("liftoff");
-const path = require("path");
-
-const configName = ".xlaunchrc";
 
 const cli = new Liftoff({
     "name": "x-launch"
@@ -23,13 +20,10 @@ cli.launch(
         , "configPath": argv.f || argv.file
     }
     , function (env) {
-        var customConfig;
+        require("../");
         if (env.configPath) {
-            try {
-                customConfig = require(env.configPath);
-            } catch (e) { }
+            xlaunch.loadConfig(env.configPath);
         }
-        const boot = require("../");
-        boot.default(customConfig);
+        xlaunch.boot();
     }
 );
