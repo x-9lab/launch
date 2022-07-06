@@ -7,7 +7,10 @@
     "useWorkspaces": true,
     "scripts": {
         "boot": "lerna bootstrap",
-        "launch": "../dist/bin/launch"
+        "launch": "../dist/bin/launch",
+        "start-dev": "echo START DEV...",
+        "start-prod": "echo START PROD...",
+        "start-debug": "echo START DEBUG..."
     },
     "devDependencies": {
         "lerna": "^4.0.0"

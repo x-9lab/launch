@@ -26,6 +26,8 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
   - `cwd` 执行目录，默认为 `process.cwd()`
   - `wellcomFileName` 启动 Logo 输出文件名，默认为 `version.js`
   - `inquirerDirName` 交互菜单目录名称，默认为 `@inquirer`
+  - `startAtRoot` 环境启动命令在根目录，默认 `false`
+  - `showStartDebugEnv` 显示启动 debug 环境，默认 `false`
 
 ## 全局对象
 `launch` 提供了一个全局对象 `xlaunch`，可在 `nodeJs` 环境下直接调用
@@ -51,6 +53,10 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
   ```js
   xlaunch.loadConfig(configPath);
   ```
+- `getConfig` 获取项目配置
+  ```js
+  const onRoot = XLaunch.getConfig("startAtRoot");
+  ```
 
 ## 使用
 1. 将 `@x-9lab/launch` 加入到 `devDependencies`
@@ -62,6 +68,7 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
     }
   }
   ```
+简单用法请参考 `example` 中的项目
 
 ### 代码开发
 `launch` 调用指定包 `package.json` scripts 字段中的 `dev` 命令
@@ -92,10 +99,10 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
 
 `launch` 初始化时会扫描 `scriptDirName` 指定目录下 `inquirerDirName` 指定的目录中的 `js` 文件并尝试将模块作为新的选项加入到一级选项中
 - 文件名做为新增选项取值
-- 模块必须返回符合 `LaunchInquirerExport` 定义的数据结构
+- 模块必须返回符合 `XLaunchInquirerExport` 定义的数据结构
   ```ts
   /**用户自定义交互菜单模块导出对象 */
-  interface LaunchInquirerExport {
+  interface XLaunchInquirerExport {
     /**交互菜单名称 */
     name: string;
 

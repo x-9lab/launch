@@ -32,7 +32,7 @@ function compile(inquirer) {
         });
 }
 
-/**@type {LaunchInquirerExport} */
+/**@type {XLaunchInquirerExport} */
 module.exports = {
     "name": "编译安装包"
     , processor: compile
