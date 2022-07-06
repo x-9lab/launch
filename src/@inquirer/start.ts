@@ -1,5 +1,6 @@
 import type { IPackages } from "../helper";
 import type { Inquirer } from "inquirer";
+import { EXIT_PACK } from "../consts";
 import { spawn } from "../helper";
 
 enum CmdType {
@@ -8,6 +9,9 @@ enum CmdType {
 
     /**启动生产环境 */
     , StartProd = "start-prod"
+
+    /**退出 */
+    , Exit = ""
 }
 
 type StartAnswers = Record<string, CmdType>;
@@ -22,6 +26,7 @@ const StartType = [
         "name": "生产环境"
         , "value": CmdType.StartProd
     }
+    , EXIT_PACK
 ];
 
 const services = [];
@@ -34,6 +39,9 @@ function startProject(inquirer: Inquirer, cmd: CmdType) {
         , "message": "运行项目 >> "
         , "choices": services
     }]).then(answers => {
+        if (answers.name === CmdType.Exit) {
+            process.exit(0);
+        }
         spawn("yarn", ["workspace", answers.name, cmd]);
     });
 }
@@ -46,6 +54,7 @@ function start(inquirer: Inquirer, Packages: IPackages) {
                 services.push(Packages[key]);
             }
         });
+        services.push(EXIT_PACK);
     }
     inquirer
         .prompt<StartAnswers>([{
@@ -56,6 +65,9 @@ function start(inquirer: Inquirer, Packages: IPackages) {
             , "choices": StartType
         }])
         .then(answers => {
+            if (answers.cmd === CmdType.Exit) {
+                process.exit(0);
+            }
             startProject(inquirer, answers.cmd);
         });
 }

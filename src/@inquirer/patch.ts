@@ -1,10 +1,12 @@
 import type { Inquirer } from "inquirer";
+import { EXIT_PACK } from "../consts";
 import { spawn } from "../helper";
 import fs from "fs/promises";
 import path from "path";
 
 enum PatchType {
     React24304 = "react-24304"
+    , Exit = ""
 }
 
 /**环境 */
@@ -13,6 +15,7 @@ const PatchList = [
         "name": "React #24304"
         , "value": PatchType.React24304
     }
+    , EXIT_PACK
 ];
 
 async function cleanReactTypes() {
@@ -61,6 +64,10 @@ function patch(inquirer: Inquirer) {
                     console.log("\n🐒 正在修复 react #24304 问题, 问题解决前系统将强制使用: " + "@types/react@17.0.11".yellow);
                     await spawn("yarn", ["add", "@types/react@17.0.11", "-W"]);
                     cleanReactTypes();
+                    break;
+
+                case PatchType.Exit:
+                    process.exit(0);
                     break;
             }
         });

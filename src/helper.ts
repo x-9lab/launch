@@ -61,12 +61,12 @@ export { spawn };
 
 /**
  * 执行脚本
- * @param {string[]} names          要运行的项目名称列表
- * @param {string[]} BuildSequence  所有运行的项目列表
- * @param {string} task             运行的命令名称
- * @param {boolean} noSort          运行的命令名称
+ * @param names          要运行的项目名称列表
+ * @param BuildSequence  所有运行的项目列表
+ * @param task           运行的命令名称
+ * @param noSort         运行的命令名称
  */
-async function job(names, BuildSequence, task, noSort = false) {
+async function job(names: string[], BuildSequence: string[], task: string, noSort: boolean = false) {
     if ((!isArray(names) || !names.length) && !noSort) {
         return;
     }

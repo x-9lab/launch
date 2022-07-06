@@ -1,7 +1,18 @@
 
-import type { Inquirer } from "inquirer";
 import type { IPackages } from "../helper";
+import type { Inquirer } from "inquirer";
+import { EXIT_PACK } from "../consts";
+import { copy } from "@x-drive/utils";
 import { job } from "../helper";
+
+enum BuildModes {
+    /**全部打包 */
+    All = "all"
+    /**部分打包 */
+    , Part = "part"
+    /**退出 */
+    , Exit = "exit"
+}
 
 /**部分打包 */
 function build(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[]) {
@@ -29,7 +40,10 @@ function build(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[])
 
 /**选择打包类型 */
 function buildMode(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[]) {
-    inquirer.prompt([
+    const exit = copy(EXIT_PACK);
+    exit.value = BuildModes.Exit;
+
+    inquirer.prompt<Record<string, BuildModes>>([
         {
             "type": "list"
             , "loop": false
@@ -39,22 +53,31 @@ function buildMode(inquirer: Inquirer, Packages: IPackages, BuildSequence: strin
             , "choices": [
                 {
                     "name": "全部打包"
-                    , "value": "all"
+                    , "value": BuildModes.All
                 }
                 , {
                     "name": "部分打包"
-                    , "value": "part"
+                    , "value": BuildModes.Part
                 }
+                , exit
             ]
         }
     ]).then((answers) => {
         const { name } = answers;
-        if (name === "all") {
-            job(null, BuildSequence, "build", true);
-        } else {
-            build(inquirer, Packages, BuildSequence);
+        switch (name) {
+            case BuildModes.All:
+                job(null, BuildSequence, "build", true);
+                break;
+
+            case BuildModes.Part:
+                build(inquirer, Packages, BuildSequence);
+                break;
+
+            case BuildModes.Exit:
+                process.exit(0);
+                break;
         }
-    })
+    });
 }
 
 export default buildMode;
