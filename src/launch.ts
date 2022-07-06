@@ -1,4 +1,4 @@
-import { copy, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
+import { copy, isAsyncFunction, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
 import { checkFileStat, spawn, walk } from "./helper";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
@@ -44,6 +44,18 @@ interface MenuItem {
 }
 export type { MenuItem }
 
+/**选项钩子 */
+interface IHook {
+    /**业务开始执行前 */
+    onStart?: () => boolean;
+
+    /**业务执行后 */
+    onEnd?(): boolean;
+}
+
+type LaunchHooks = {
+    [name: string]: IHook
+}
 
 /**运行模式 */
 enum ModeTypes {
@@ -165,6 +177,9 @@ class Launch {
     /**用户 launch 业务目录 */
     #scriptDir: string;
 
+    /**钩子 */
+    #menuHooks: LaunchHooks = {};
+
     /**spawn 模式执行一条命令 */
     spawn = spawn;
 
@@ -259,26 +274,31 @@ class Launch {
                 , "message": "运行模式 >> "
                 , "choices": this.#menus
             }])
-            .then(answers => {
+            .then(async answers => {
+                let hooks = this.#menuHooks[answers.mode];
+                let { onStart, onEnd } = hooks;
+                if (isExecutable(onStart)) {
+                    onStart();
+                }
                 switch (answers.mode) {
                     case ModeTypes.Boot:
-                        Inquirers.sysBoot();
+                        await Inquirers.sysBoot();
                         break;
 
                     case ModeTypes.Build:
-                        Inquirers.build(inquirer, Packages, BuildSequence);
+                        await Inquirers.build(inquirer, Packages, BuildSequence);
                         break;
 
                     case ModeTypes.Start:
-                        Inquirers.start(inquirer, Packages);
+                        await Inquirers.start(inquirer, Packages);
                         break;
 
                     case ModeTypes.Patch:
-                        Inquirers.patch(inquirer);
+                        await Inquirers.patch(inquirer);
                         break;
 
                     case ModeTypes.Dev:
-                        Inquirers.dev(inquirer, Packages);
+                        await Inquirers.dev(inquirer, Packages);
                         break;
 
                     case ModeTypes.Exit:
@@ -288,11 +308,15 @@ class Launch {
                     default:
                         let customMenus = this.#customMenus[answers.mode]
                         if (customMenus) {
-                            customMenus.processor(inquirer, Packages, BuildSequence);
+                            await customMenus.processor(inquirer, Packages, BuildSequence);
                         } else {
                             process.exit(0);
                         }
                 }
+                if (isExecutable(onStart)) {
+                    onEnd();
+                }
+                hooks = null;
             });
     }
 
@@ -325,6 +349,18 @@ class Launch {
             this.#config = merge({}, DefConfig, conf);
         }
         return this;
+    }
+
+    /**设置钩子 */
+    hooks(setting: LaunchHooks) {
+        if (isObject(setting)) {
+            Object.keys(setting).forEach(key => {
+                const hook = setting[key];
+                if (isExecutable(hook.onEnd) || isExecutable(hook.onStart)) {
+                    this.#menuHooks[key] = setting[key];
+                }
+            });
+        }
     }
 
     /**获取配置 */

@@ -49,8 +49,8 @@ async function cleanReactTypes() {
     }
 }
 
-function patch(inquirer: Inquirer) {
-    inquirer
+async function patch(inquirer: Inquirer) {
+    await inquirer
         .prompt<Record<string, PatchType>>([{
             "type": "list"
             , "loop": false
@@ -63,7 +63,7 @@ function patch(inquirer: Inquirer) {
                 case PatchType.React24304:
                     console.log("\n🐒 正在修复 react #24304 问题, 问题解决前系统将强制使用: " + "@types/react@17.0.11".yellow);
                     await spawn("yarn", ["add", "@types/react@17.0.11", "-W"]);
-                    cleanReactTypes();
+                    await cleanReactTypes();
                     break;
 
                 case PatchType.Exit:

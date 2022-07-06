@@ -15,7 +15,7 @@ declare global {
         name: string;
 
         /**交互菜单操作函数 */
-        processor(inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]): void;
+        processor(inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]): PromiseLike<void>;
     }
 
     interface XLaunchConfig extends LaunchConfig {

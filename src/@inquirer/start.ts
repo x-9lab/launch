@@ -38,23 +38,23 @@ const StartType: MenuItem[] = [
 
 const services = [];
 
-function startProject(inquirer: Inquirer, cmd: CmdType) {
-    inquirer.prompt<Record<string, string>>([{
+async function startProject(inquirer: Inquirer, cmd: CmdType) {
+    await inquirer.prompt<Record<string, string>>([{
         "type": "list"
         , "loop": false
         , "name": "name"
         , "message": "运行项目 >> "
         , "choices": services
-    }]).then(answers => {
+    }]).then(async answers => {
         if (answers.name === CmdType.Exit) {
             process.exit(0);
         }
-        spawn("yarn", ["workspace", answers.name, cmd]);
+        await spawn("yarn", ["workspace", answers.name, cmd]);
     });
 }
 
 /**启动环境 */
-function start(inquirer: Inquirer, Packages: IPackages) {
+async function start(inquirer: Inquirer, Packages: IPackages) {
     const onRoot = XLaunch.getConfig("startAtRoot");
     const showDebugEnv = XLaunch.getConfig("showStartDebugEnv");
     if (!onRoot) {
@@ -77,7 +77,7 @@ function start(inquirer: Inquirer, Packages: IPackages) {
     }
     startTypes.push(EXIT_PACK);
 
-    inquirer
+    await inquirer
         .prompt<StartAnswers>([{
             "type": "list"
             , "loop": false
@@ -85,14 +85,14 @@ function start(inquirer: Inquirer, Packages: IPackages) {
             , "message": "运行环境 >> "
             , "choices": startTypes
         }])
-        .then(answers => {
+        .then(async answers => {
             if (answers.env === CmdType.Exit) {
                 process.exit(0);
             }
             if (onRoot) {
-                spawn("yarn", [answers.env]);
+                await spawn("yarn", [answers.env]);
             } else {
-                startProject(inquirer, answers.env);
+                await startProject(inquirer, answers.env);
             }
         });
 }

@@ -15,8 +15,8 @@ enum BuildModes {
 }
 
 /**部分打包 */
-function build(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[]) {
-    inquirer
+async function build(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[]) {
+    return inquirer
         .prompt([
             {
                 "type": "checkbox"
@@ -28,22 +28,22 @@ function build(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[])
                     .map(key => Packages[key])
             }
         ])
-        .then((answers) => {
+        .then(async (answers) => {
             const { name } = answers;
             if (!name || !name.length) {
                 return;
             }
-            job(name, BuildSequence, "build");
+            await job(name, BuildSequence, "build");
         });
 }
 
 
 /**选择打包类型 */
-function buildMode(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[]) {
+async function buildMode(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[]) {
     const exit = copy(EXIT_PACK);
     exit.value = BuildModes.Exit;
 
-    inquirer.prompt<Record<string, BuildModes>>([
+    await inquirer.prompt<Record<string, BuildModes>>([
         {
             "type": "list"
             , "loop": false
@@ -62,15 +62,15 @@ function buildMode(inquirer: Inquirer, Packages: IPackages, BuildSequence: strin
                 , exit
             ]
         }
-    ]).then((answers) => {
+    ]).then(async (answers) => {
         const { name } = answers;
         switch (name) {
             case BuildModes.All:
-                job(null, BuildSequence, "build", true);
+                await job(null, BuildSequence, "build", true);
                 break;
 
             case BuildModes.Part:
-                build(inquirer, Packages, BuildSequence);
+                await build(inquirer, Packages, BuildSequence);
                 break;
 
             case BuildModes.Exit:

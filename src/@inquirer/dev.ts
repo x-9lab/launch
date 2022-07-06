@@ -4,7 +4,7 @@ import { EXIT_PACK } from "../consts";
 import { spawn } from "../helper";
 
 /**项目选择 */
-function dev(inquirer: Inquirer, Packages: IPackages) {
+async function dev(inquirer: Inquirer, Packages: IPackages) {
 
     const config = {
         "type": "list"
@@ -17,13 +17,13 @@ function dev(inquirer: Inquirer, Packages: IPackages) {
             .concat([EXIT_PACK])
     }
 
-    inquirer
+    await inquirer
         .prompt([config])
-        .then((answers) => {
+        .then(async (answers) => {
             if (answers.name === "" || Array.isArray(answers.name) && answers.name.indexOf("") !== -1) {
                 process.exit(0);
             }
-            spawn("yarn", ["workspace", answers.name, "dev"]);
+            await spawn("yarn", ["workspace", answers.name, "dev"]);
         });
 }
 export default dev;
