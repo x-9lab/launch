@@ -2,7 +2,7 @@ import type { IPackages } from "../helper";
 import type { MenuItem } from "../launch";
 import type { Inquirer } from "inquirer";
 import { EXIT_PACK } from "../consts";
-import { copy } from "@x-drive/utils";
+import { copy, isBoolean, isObject } from "@x-drive/utils";
 import { XLaunch } from "../launch";
 import { spawn } from "../helper";
 
@@ -21,8 +21,6 @@ enum CmdType {
 }
 
 type StartAnswers = Record<string, CmdType>;
-
-
 
 /**环境 */
 const StartType: MenuItem[] = [
@@ -53,11 +51,22 @@ async function startProject(inquirer: Inquirer, cmd: CmdType) {
     });
 }
 
+/**命令是否在 root 上执行 */
+function isOnRoot(conf: boolean | Record<string, boolean>, env: string) {
+    if (isBoolean(conf)) {
+        return conf;
+    }
+    if (isObject(conf)) {
+        return Boolean(conf[env]);
+    }
+    return false;
+}
+
 /**启动环境 */
 async function start(inquirer: Inquirer, Packages: IPackages) {
     const onRoot = XLaunch.getConfig("startAtRoot");
     const showDebugEnv = XLaunch.getConfig("showStartDebugEnv");
-    if (!onRoot) {
+    if (isObject(onRoot) || Boolean(onRoot) === false) {
         if (services.length === 0) {
             Object.keys(Packages).forEach(key => {
                 if (Packages[key].isServices) {
@@ -89,7 +98,7 @@ async function start(inquirer: Inquirer, Packages: IPackages) {
             if (answers.env === CmdType.Exit) {
                 process.exit(0);
             }
-            if (onRoot) {
+            if (isOnRoot(onRoot, answers.env)) {
                 await spawn("yarn", [answers.env]);
             } else {
                 await startProject(inquirer, answers.env);
