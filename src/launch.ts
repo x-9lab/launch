@@ -313,7 +313,7 @@ class Launch {
                             process.exit(0);
                         }
                 }
-                if (isExecutable(onStart)) {
+                if (isExecutable(onEnd)) {
                     onEnd();
                 }
                 hooks = null;
