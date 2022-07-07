@@ -14,7 +14,11 @@ xlaunch.hooks({
  * @type {XLaunchConfig}
  */
 const Conf = {
-    "startAtRoot": true
+    // "startAtRoot": true
+    "startAtRoot": {
+        // 指定 @x-9lab/launch-example-e 的环境启动命令在根目录上
+        "@x-9lab/launch-example-e": true
+    }
     , "showStartDebugEnv": true
 };
 

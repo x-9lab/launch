@@ -24,9 +24,21 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
 - 配置项
   - `scriptDirName` Launch 扩展目录名，默认为 `@launch`
   - `cwd` 执行目录，默认为 `process.cwd()`
-  - `wellcomFileName` 启动 Logo 输出文件名，默认为 `version.js`
+  - `wellcomFileName` 启动 Logo 输出文件名，默认为 `null`
   - `inquirerDirName` 交互菜单目录名称，默认为 `@inquirer`
   - `startAtRoot` 环境启动命令在根目录，默认 `false`
+    - 可以单独指定某个包是在根目录上执行，被指定的包 `package.json` 中 `isServices` 字段必须为 `true`
+    ```js
+    /**
+    * 配置项
+    * @type {XLaunchConfig}
+    */
+    const Conf = {
+      "startAtRoot": {
+        "@x-9lab/launch-example-e": true
+      }
+    };
+    ```
   - `showStartDebugEnv` 显示启动 debug 环境，默认 `false`
 
 ## 全局对象

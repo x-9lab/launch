@@ -1,0 +1,23 @@
+{
+    "name": "@x-9lab/launch-example-e",
+    "version": "1.0.0",
+    "description": "测试包 E",
+    "private": true,
+    "useWorkspaces": true,
+    "main": "./src/index.js",
+    "author": "",
+    "license": "ISC",
+    "sequence": 3,
+    "isServices": true,
+    "scripts": {
+        "dev": "echo E dev",
+        "build": "echo E build"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "tslib": "2.3.0",
+        "typescript": "4.3.4",
+        "@swc/cli": "0.1.57",
+        "@swc/core": "1.2.172"
+    }
+}
