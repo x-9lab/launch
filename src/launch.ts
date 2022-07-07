@@ -1,4 +1,4 @@
-import { copy, isAsyncFunction, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
+import { copy, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
 import { checkFileStat, spawn, walk } from "./helper";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
@@ -89,7 +89,7 @@ try {
     fs.readdirSync(BasePath).forEach(name => {
         try {
             const meta = require(`${BasePath}/${name}/package.json`);
-            if (meta.sequence !== -1) {
+            if (meta && meta.sequence !== -1) {
                 const pack: IPack = {
                     "name": `${name.replace(/^[a-z]/, m => m.toUpperCase())}: ${meta.description}`
                     , "value": meta.name
@@ -100,11 +100,15 @@ try {
                 Packages[name] = pack;
             }
         } catch (e) {
-            console.log(e);
+            if (e.code !== "MODULE_NOT_FOUND") {
+                console.log(e);
+            }
         }
     });
 } catch (e) {
-    console.log(e);
+    if (e.code !== "MODULE_NOT_FOUND") {
+        console.log(e);
+    }
 }
 
 const BuildSequence = Object.keys(Packages)

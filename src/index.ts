@@ -18,9 +18,7 @@ declare global {
         processor(inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]): PromiseLike<void>;
     }
 
-    interface XLaunchConfig extends LaunchConfig {
-
-    }
+    interface XLaunchConfig extends LaunchConfig { }
 }
 
 // 挂个全局的对象
