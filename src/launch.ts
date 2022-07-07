@@ -27,7 +27,7 @@ interface LaunchConfig {
     wellcomFileName?: string;
 
     /**环境启动命令在根目录 */
-    startAtRoot?: boolean;
+    startAtRoot?: boolean | Record<string, boolean>;
 
     /**显示启动 debug 环境 */
     showStartDebugEnv?: boolean;
@@ -275,7 +275,7 @@ class Launch {
                 , "choices": this.#menus
             }])
             .then(async answers => {
-                let hooks = this.#menuHooks[answers.mode];
+                let hooks = this.#menuHooks[answers.mode] || {};
                 let { onStart, onEnd } = hooks;
                 if (isExecutable(onStart)) {
                     onStart();
