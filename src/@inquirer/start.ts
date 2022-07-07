@@ -2,7 +2,7 @@ import type { IPackages } from "../helper";
 import type { MenuItem } from "../launch";
 import type { Inquirer } from "inquirer";
 import { EXIT_PACK } from "../consts";
-import { copy, isBoolean, isObject } from "@x-drive/utils";
+import { copy, isBoolean, isObject, isString } from "@x-drive/utils";
 import { XLaunch } from "../launch";
 import { spawn } from "../helper";
 
@@ -34,9 +34,24 @@ const StartType: MenuItem[] = [
     }
 ];
 
+/**
+ * 命令是否在 root 上执行
+ * @param conf 是否在根目录上执行的配置
+ * @param name 在根目录上执行的项目
+ */
+function isOnRoot(conf: boolean | Record<string, boolean>, name?: string) {
+    if (isBoolean(conf)) {
+        return conf;
+    }
+    if (isString(name) && isObject(conf)) {
+        return Boolean(conf[name]);
+    }
+    return false;
+}
+
 const services = [];
 
-async function startProject(inquirer: Inquirer, cmd: CmdType) {
+async function startProject(inquirer: Inquirer, cmd: CmdType, onRootConf: boolean | Record<string, boolean>) {
     await inquirer.prompt<Record<string, string>>([{
         "type": "list"
         , "loop": false
@@ -47,19 +62,12 @@ async function startProject(inquirer: Inquirer, cmd: CmdType) {
         if (answers.name === CmdType.Exit) {
             process.exit(0);
         }
-        await spawn("yarn", ["workspace", answers.name, cmd]);
+        if (isOnRoot(onRootConf, answers.name)) {
+            await spawn("yarn", [cmd]);
+        } else {
+            await spawn("yarn", ["workspace", answers.name, cmd]);
+        }
     });
-}
-
-/**命令是否在 root 上执行 */
-function isOnRoot(conf: boolean | Record<string, boolean>, env: string) {
-    if (isBoolean(conf)) {
-        return conf;
-    }
-    if (isObject(conf)) {
-        return Boolean(conf[env]);
-    }
-    return false;
 }
 
 /**启动环境 */
@@ -98,10 +106,10 @@ async function start(inquirer: Inquirer, Packages: IPackages) {
             if (answers.env === CmdType.Exit) {
                 process.exit(0);
             }
-            if (isOnRoot(onRoot, answers.env)) {
+            if (isOnRoot(onRoot)) {
                 await spawn("yarn", [answers.env]);
             } else {
-                await startProject(inquirer, answers.env);
+                await startProject(inquirer, answers.env, onRoot);
             }
         });
 }
