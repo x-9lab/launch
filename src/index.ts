@@ -1,4 +1,3 @@
-import "colors";
 import type { LaunchConfig } from "./launch";
 import { Launch, XLaunch } from "./launch";
 import type { IPackages } from "./helper";

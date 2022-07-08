@@ -1,5 +1,5 @@
 import { copy, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
-import { checkFileStat, spawn, walk } from "./helper";
+import { checkFileStat, spawn, walk, colors } from "./helper";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
 import sysBoot from "./@inquirer/sys-boot";
@@ -243,9 +243,11 @@ class Launch {
                     }
                 } else {
                     errMsgs.push(
-                        (value === "exit"
-                            ? `${fileName} 模块导出的选项值 exit 为模块保留值`
-                            : `${fileName} 模块导出的选项值 ${value} 已存在`).yellow
+                        colors.yellow(
+                            value === "exit"
+                                ? `${fileName} 模块导出的选项值 exit 为模块保留值`
+                                : `${fileName} 模块导出的选项值 ${value} 已存在`
+                        )
                     );
                 }
             });
@@ -256,7 +258,9 @@ class Launch {
                 );
                 console.log(
                     "  "
-                    , "当前已有选项值:", this.#menusVal.concat(["exit"]).join(", ").blue
+                    , "当前已有选项值:", colors.blue(
+                        this.#menusVal.concat(["exit"]).join(", ")
+                    )
                     , "\n"
                 );
             }
@@ -336,8 +340,10 @@ class Launch {
                 const version = require(versionPath);
                 version();
             } catch (e) {
-                console.log(`🤔 启动 Logo 输出文件 ${this.#config.wellcomFileName.bold} 不存在`.yellow);
-                console.log("   如不希望显示启动 Logo, 可将", "wellcomFileName".bold, "设为 null");
+                console.log(
+                    colors.yellow(`🤔 启动 Logo 输出文件 ${colors.bold(this.#config.wellcomFileName)} 不存在`)
+                );
+                console.log("   如不希望显示启动 Logo, 可将", colors.bold("wellcomFileName"), "设为 null");
             }
         }
         return this;

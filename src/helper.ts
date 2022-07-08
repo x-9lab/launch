@@ -1,5 +1,6 @@
 import { isArray } from "@x-drive/utils";
 import crossSpawn from "cross-spawn";
+import colors from "colors/safe";
 import path from "path";
 import fs from "fs";
 
@@ -23,6 +24,8 @@ export type { IPack };
 
 type IPackages = Record<string, IPack>;
 export type { IPackages }
+
+export { colors }
 
 class SpawnError extends Error {
     code: number;
@@ -80,12 +83,12 @@ async function job(names: string[], BuildSequence: string[], task: string, noSor
         for (; i < sequence.length; i++) {
             await spawn("yarn", ["workspace", sequence[i], task]);
             console.log(
-                `📦 ${sequence[i]} `.bold + `${task} `.cyan + "success".green
+                `📦 ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} ` + colors.green("success")
             );
         }
     } catch (e) {
         console.log(
-            `📦 ${sequence[i]} `.bold + `${task} `.cyan + "failure".red
+            `📦 ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} ` + colors.red("failure")
         );
     }
 }
