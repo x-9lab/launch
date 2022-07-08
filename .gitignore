@@ -59,6 +59,7 @@ node_modules/
 dist/
 _dist/
 package
+@types/
 
 # Compiled files #
 ##################

@@ -20,7 +20,7 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "declaration": true,
-        "declarationDir": "./dist",
+        "declarationDir": "./@types",
         "baseUrl": ".",
         "rootDir": "./src",
         "types": [
