@@ -18,94 +18,109 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
 
 ## 注意事项
 1. 部分脚本使用了 nodeJS 的高版本特性，需要 nodeJs v14 以上版本
+1. 正常情况 js 环境也能识别到模块的相关定义，如发现各种定义提示失效，也可手动引入定义，如使用注释引入:
+    ```ts
+    // @filename: @x-9lab/launch/@types/index.d.ts
+    /**
+    * 配置项
+    * @type {XLaunchConfig}
+    */
+    const Conf = {
+        "startAtRoot": {
+            "@x-abyssal/gentleman-altar": true
+        }
+        , "showStartDebugEnv": true
+    };
+
+    ```
 
 ## 配置文件
 - 支持 `xlaunch.config.json` 或 `xlaunch.config.js` 为配置文件
 - 配置项
-  - `scriptDirName` Launch 扩展目录名，默认为 `@launch`
-  - `cwd` 执行目录，默认为 `process.cwd()`
-  - `wellcomFileName` 启动 Logo 输出文件名，默认为 `null`
-  - `inquirerDirName` 交互菜单目录名称，默认为 `@inquirer`
-  - `startAtRoot` 环境启动命令在根目录，默认 `false`
-    - 可以单独指定某个包是在根目录上执行，被指定的包 `package.json` 中 `isServices` 字段必须为 `true`
+    - `scriptDirName` Launch 扩展目录名，默认为 `@launch`
+    - `cwd` 执行目录，默认为 `process.cwd()`
+    - `wellcomFileName` 启动 Logo 输出文件名，默认为 `null`
+    - `inquirerDirName` 交互菜单目录名称，默认为 `@inquirer`
+    - `startAtRoot` 环境启动命令在根目录，默认 `false`
+        - 可以单独指定某个包是在根目录上执行，被指定的包 `package.json` 中 `isServices` 字段必须为 `true`
     ```js
     /**
     * 配置项
     * @type {XLaunchConfig}
     */
     const Conf = {
-      "startAtRoot": {
+    "startAtRoot": {
         "@x-9lab/launch-example-e": true
-      }
+    }
     };
     ```
-  - `showStartDebugEnv` 显示启动 debug 环境，默认 `false`
+    - `showStartDebugEnv` 显示启动 debug 环境，默认 `false`
 
 ## 全局对象
 `launch` 提供了一个全局对象 `xlaunch`，可在 `nodeJs` 环境下直接调用
 - `spawn` spawn 模式执行一条命令
-  ```js
-  xlaunch.spawn("yarn", [answers.type]);
-  ```
+    ```js
+    xlaunch.spawn("yarn", [answers.type]);
+    ```
 - `EXIT_PACK` 获取一个标准退出选项
-  ```js
-  const menus = [
-    {
-      "name": "关机"
-      , "value": "shutdown"
-    }
-    , xlaunch.EXIT_PACK
-  ];
-  ```
+    ```js
+    const menus = [
+        {
+            "name": "关机"
+            , "value": "shutdown"
+        }
+        , xlaunch.EXIT_PACK
+    ];
+    ```
 - `boot` 主启动函数，每个实例只会执行一次
-  ```js
-  xlaunch.boot();
-  ```
+    ```js
+    xlaunch.boot();
+    ```
 - `loadConfig` 加载项目配置控制文件
-  ```js
-  xlaunch.loadConfig(configPath);
-  ```
+    ```js
+    xlaunch.loadConfig(configPath);
+    ```
 - `getConfig` 获取项目配置
-  ```js
-  const onRoot = XLaunch.getConfig("startAtRoot");
-  ```
+    ```js
+    const onRoot = XLaunch.getConfig("startAtRoot");
+    ```
 - `hooks` 设置某个(些)选项开始/结束的钩子
 
-  定义：
-  ```ts
-  /**选项钩子 */
-  interface IHook {
-    /**业务开始执行前 */
-    onStart?: () => boolean;
+    定义：
+    ```ts
+    /**选项钩子 */
+    interface IHook {
+        /**业务开始执行前 */
+        onStart?: () => boolean;
 
-    /**业务执行后 */
-    onEnd?(): boolean;
-  }
-  ```
-  例子：
-  ```js
-  xlaunch.hooks({
-    "boot": {
-      onEnd() {
-        console.log("⌛️ Boot end...");
-      }
-      , onStart() {
-        console.log("⏳ Boot start...");
-      }
+        /**业务执行后 */
+        onEnd?(): boolean;
     }
-  });
-  ```
+    ```
+    例子：
+    ```js
+    xlaunch.hooks({
+        "boot": {
+            onEnd() {
+                console.log("⌛️ Boot end...");
+            }
+            , onStart() {
+                console.log("⏳ Boot start...");
+            }
+        }
+    });
+    ```
 
 ## 使用
 1. 将 `@x-9lab/launch` 加入到 `devDependencies`
 1. `package.json` 中调用 `xlaunch`
-  ```json
-  {
-    "scripts": {
-      "launch": "xlaunch"
+    ```json
+    {
+        "scripts": {
+            "launch": "xlaunch"
+        }
     }
-  }
-  ```
+    ```
 简单用法请参考 `example` 中的项目
 
 ### 代码开发
@@ -129,22 +144,22 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
 ### 定义多个包之间可能存在依赖关系
 在多个包同时编译时需要按照一定顺序进行。`launch` 在执行的时候会根据子包的 `package.json` 中的 `sequence` 字段做排序，按数字顺序编译以确保输出结果。开发者需要自己维护这个编译顺序。
 
-  特殊取值：
-    - **709394** 其它未声明 `sequence` 字段的子包，该值由 `launch` 自动添加，请不要占用
-    - **-1** 不纳入可操作的包列表
+特殊取值：
+- 709394 其它未声明 `sequence` 字段的子包，该值由 `launch` 自动添加，请不要占用
+- -1 不纳入可操作的包列表
 
 ### 自定义菜单
 
 `launch` 初始化时会扫描 `scriptDirName` 指定目录下 `inquirerDirName` 指定的目录中的 `js` 文件并尝试将模块作为新的选项加入到一级选项中
 - 文件名做为新增选项取值
 - 模块必须返回符合 `XLaunchInquirerExport` 定义的数据结构
-  ```ts
-  /**用户自定义交互菜单模块导出对象 */
-  interface XLaunchInquirerExport {
-    /**交互菜单名称 */
-    name: string;
+    ```ts
+    /**用户自定义交互菜单模块导出对象 */
+    interface XLaunchInquirerExport {
+        /**交互菜单名称 */
+        name: string;
 
-    /**交互菜单操作函数 */
-    processor(inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]): void;
-  }
-  ```
+        /**交互菜单操作函数 */
+        processor(inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]): void;
+    }
+    ```
