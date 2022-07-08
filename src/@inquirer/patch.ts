@@ -1,6 +1,6 @@
+import { spawn, colors } from "../helper";
 import type { Inquirer } from "inquirer";
 import { EXIT_PACK } from "../consts";
-import { spawn } from "../helper";
 import fs from "fs/promises";
 import path from "path";
 
@@ -61,7 +61,7 @@ async function patch(inquirer: Inquirer) {
         .then(async answers => {
             switch (answers.issue) {
                 case PatchType.React24304:
-                    console.log("\n🐒 正在修复 react #24304 问题, 问题解决前系统将强制使用: " + "@types/react@17.0.11".yellow);
+                    console.log("\n🐒 正在修复 react #24304 问题, 问题解决前系统将强制使用: " + colors.yellow("@types/react@17.0.11"));
                     await spawn("yarn", ["add", "@types/react@17.0.11", "-W"]);
                     await cleanReactTypes();
                     break;
