@@ -1,10 +1,11 @@
 const { version } = require("../package.json");
+const colors = require("colors/safe");
 const LOGO = [
     ``
     // Calvin S
-    , `   ┌─┐┌┬┐┬ ┬`.cyan
-    , `   ├┤  │ ├─┤`.cyan
-    , `   └─┘ ┴ ┴ ┴`.cyan + ` v${version}`.grey
+    , colors.cyan(`   ┌─┐┌┬┐┬ ┬`)
+    , colors.cyan(`   ├┤  │ ├─┤`)
+    , colors.cyan(`   └─┘ ┴ ┴ ┴`) + colors.grey(` v${version}`)
     , ``
 ];
 module.exports = function () {
