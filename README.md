@@ -49,9 +49,9 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
     * @type {XLaunchConfig}
     */
     const Conf = {
-    "startAtRoot": {
-        "@x-9lab/launch-example-e": true
-    }
+        "startAtRoot": {
+            "@x-9lab/launch-example-e": true
+        }
     };
     ```
     - `showStartDebugEnv` 显示启动 debug 环境，默认 `false`
