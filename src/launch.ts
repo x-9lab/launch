@@ -1,4 +1,4 @@
-import { copy, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
+import { copy, isBoolean, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
 import { checkFileStat, spawn, walk, colors } from "./helper";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
@@ -11,6 +11,18 @@ import inquirer from "inquirer";
 import path from "path";
 import fs from "fs";
 
+/**菜单项 */
+interface MenuItem {
+    /**菜单标题 */
+    name: string;
+
+    /**操作值 */
+    value: ModeTypes | string;
+}
+export type { MenuItem }
+
+/**内置菜单 */
+type BuildInLaunchMenus = ModeTypes | string;
 
 /**配置项 */
 interface LaunchConfig {
@@ -31,18 +43,11 @@ interface LaunchConfig {
 
     /**显示启动 debug 环境 */
     showStartDebugEnv?: boolean;
+
+    /**要屏蔽的菜单 */
+    ignoreMenus?: Record<BuildInLaunchMenus, boolean> | boolean;
 }
 export type { LaunchConfig }
-
-/**菜单项 */
-interface MenuItem {
-    /**菜单标题 */
-    name: string;
-
-    /**操作值 */
-    value: ModeTypes | string;
-}
-export type { MenuItem }
 
 /**选项钩子 */
 interface IHook {
@@ -76,6 +81,13 @@ enum ModeTypes {
 
     /**退出 */
     , Exit = "exit"
+}
+
+/**菜单有效性 */
+enum MenuAvailability {
+    Ignore = -1
+    , ExistOrExit
+    , Valid
 }
 
 /**已有的包 */
@@ -221,6 +233,24 @@ class Launch {
         return this;
     }
 
+    /**检查菜单有效性 */
+    #checkInquirerAvailability(name: string) {
+        const { ignoreMenus } = this.#config;
+        if (name === "exit") {
+            return MenuAvailability.ExistOrExit;
+        }
+
+        if (this.#menusVal.indexOf(name) !== -1) {
+            return MenuAvailability.ExistOrExit;
+        }
+
+        if (isObject(ignoreMenus)) {
+            return ignoreMenus[name] ? MenuAvailability.Ignore : MenuAvailability.Valid;
+        }
+
+        return 1;
+    }
+
     /**扫描相关文件夹 */
     #scan() {
         const inquirerPath = path.resolve(
@@ -231,7 +261,8 @@ class Launch {
             const errMsgs: string[] = [];
             walk(inquirerPath, 0, (filePath, fileName) => {
                 var value = fileName.replace(".js", "");
-                if (value !== "exit" && this.#menusVal.indexOf(value) === -1) {
+                const availability = this.#checkInquirerAvailability(value);
+                if (availability === MenuAvailability.Valid) {
                     const mod: XLaunchInquirerExport = require(filePath);
                     if (mod && isExecutable(mod.processor) && mod.name) {
                         this.#customMenus[value] = mod;
@@ -242,13 +273,15 @@ class Launch {
                         this.#menusVal.push(value);
                     }
                 } else {
-                    errMsgs.push(
-                        colors.yellow(
-                            value === "exit"
-                                ? `${fileName} 模块导出的选项值 exit 为模块保留值`
-                                : `${fileName} 模块导出的选项值 ${value} 已存在`
-                        )
-                    );
+                    if (availability === MenuAvailability.ExistOrExit) {
+                        errMsgs.push(
+                            colors.yellow(
+                                value === "exit"
+                                    ? `${fileName} 模块导出的选项值 exit 为模块保留值`
+                                    : `${fileName} 模块导出的选项值 ${value} 已存在`
+                            )
+                        );
+                    }
                 }
             });
             if (errMsgs.length) {
@@ -349,6 +382,20 @@ class Launch {
         return this;
     }
 
+    /**配置处理器 */
+    #configProcessor() {
+        const { ignoreMenus } = this.#config;
+        if (!isUndefined(ignoreMenus)) {
+            if (isBoolean(ignoreMenus) && ignoreMenus === true) {
+                this.#menus = [];
+                this.#menusVal = [];
+            } else if (isObject(ignoreMenus)) {
+                this.#menus = this.#menus.filter(item => !ignoreMenus[item.value]);
+                this.#menusVal = this.#menus.map(m => m.value);
+            }
+        }
+    }
+
     /**
      * 加载项目配置控制文件
      * @param confPath 配置文件地址
@@ -357,6 +404,7 @@ class Launch {
         if (checkFileStat(confPath)) {
             let conf = require(confPath);
             this.#config = merge({}, DefConfig, conf);
+            this.#configProcessor();
         }
         return this;
     }

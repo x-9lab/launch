@@ -20,6 +20,14 @@ const Conf = {
         "@x-9lab/launch-example-e": true
     }
     , "showStartDebugEnv": true
+    // 为 true 时屏蔽所有内置菜单
+    // , "ignoreMenus": true
+    // 单独指定屏蔽某菜单
+    , "ignoreMenus": {
+        "patch": true
+        // 也可屏蔽自定义菜单
+        // , "compile": true
+    }
 };
 
 module.exports = Conf;
