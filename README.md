@@ -27,7 +27,7 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
     */
     const Conf = {
         "startAtRoot": {
-            "@x-abyssal/gentleman-altar": true
+            "@x-9lab/launch-example-e": true
         }
         , "showStartDebugEnv": true
     };
@@ -55,6 +55,33 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
     };
     ```
     - `showStartDebugEnv` 显示启动 debug 环境，默认 `false`
+    - `ignoreMenus` 屏蔽内置菜单或某个(些)菜单
+        - 取值为 `true` 时蔽所有内置菜单
+            ```js
+            /**
+            * 配置项
+            * @type {XLaunchConfig}
+            */
+            const Conf = {
+                // 为 true 时屏蔽所有内置菜单
+                "ignoreMenus": true
+            };
+            ```
+        - 为对象时根据指定的键名屏蔽指定的菜单，此时不区分是否是内置菜单
+            ```js
+            /**
+            * 配置项
+            * @type {XLaunchConfig}
+            */
+            const Conf = {
+                // 单独指定屏蔽某菜单
+                "ignoreMenus": {
+                    "patch": true
+                    // 也可屏蔽自定义菜单
+                    // , "compile": true
+                }
+            };
+            ```
 
 ## 全局对象
 `launch` 提供了一个全局对象 `xlaunch`，可在 `nodeJs` 环境下直接调用
