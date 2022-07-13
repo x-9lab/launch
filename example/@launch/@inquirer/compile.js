@@ -15,7 +15,11 @@ const CompileType = [
     , xlaunch.EXIT_PACK
 ];
 
-/**选择编译类型 */
+/**
+ * 选择编译类型
+ * @type {XLaunchInquirerExportProcessor}
+ * @param inquirer 
+ */
 function compile(inquirer) {
     inquirer
         .prompt([{
