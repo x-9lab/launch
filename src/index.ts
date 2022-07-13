@@ -8,13 +8,16 @@ declare global {
     /**monorepo 项目管理操作菜单 Launch 实例 */
     const xlaunch: Launch;
 
+    /**交互菜单操作函数 */
+    type XLaunchInquirerExportProcessor = (inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]) => PromiseLike<void>;
+
     /**用户自定义交互菜单模块导出对象 */
     interface XLaunchInquirerExport {
         /**交互菜单名称 */
         name: string;
 
         /**交互菜单操作函数 */
-        processor(inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]): PromiseLike<void>;
+        processor: XLaunchInquirerExportProcessor;
     }
 
     interface XLaunchConfig extends LaunchConfig { }
