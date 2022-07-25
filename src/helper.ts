@@ -3,6 +3,7 @@ import crossSpawn from "cross-spawn";
 import colors from "colors/safe";
 import path from "path";
 import fs from "fs";
+import type { CommonSpawnOptions } from "child_process";
 
 interface IPack {
     /**项目名 */
@@ -33,16 +34,23 @@ class SpawnError extends Error {
 
 /**
  * spawn 模式执行一条命令
- * @param  args 执行 spawn 需要用到的参数
+ * @param  command 命令
+ * @param  args    参数
+ * @param  options 配置对象
  * @return      boolean
  */
-function spawn(...args: any[]) {
+function spawn(
+    command: string
+    , args: string[]
+    , options: CommonSpawnOptions = {
+        "stdio": "inherit"
+    }
+) {
     return new Promise((res, rej) => {
         crossSpawn(
-            ...args
-            , {
-                "stdio": "inherit"
-            }
+            command
+            , args
+            , options
         ).on("error", (err: Error) => {
             console.error(err);
             rej(err);

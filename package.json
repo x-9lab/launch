@@ -1,6 +1,6 @@
 {
     "name": "@x-9lab/launch",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "monorepo 项目管理操作菜单",
     "main": "dist/index.js",
     "types": "./@types/index.d.ts",
