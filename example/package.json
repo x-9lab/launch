@@ -8,6 +8,7 @@
     "scripts": {
         "boot": "lerna bootstrap",
         "launch": "../dist/bin/launch",
+        "clean-launch-cache": "../dist/bin/launch --clean",
         "start-dev": "echo START DEV...",
         "start-prod": "echo START PROD...",
         "start-debug": "echo START DEBUG..."

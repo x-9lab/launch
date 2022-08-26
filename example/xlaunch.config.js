@@ -28,6 +28,7 @@ const Conf = {
         // 也可屏蔽自定义菜单
         // , "compile": true
     }
+    , "enableCache": true
 };
 
 module.exports = Conf;
