@@ -8,7 +8,7 @@ import start from "./@inquirer/start";
 import patch from "./@inquirer/patch";
 import dev from "./@inquirer/dev";
 import inquirer from "inquirer";
-import path from "path";
+import path, { join } from "path";
 import fs from "fs";
 
 /**菜单项 */
@@ -46,6 +46,13 @@ interface LaunchConfig {
 
     /**要屏蔽的菜单 */
     ignoreMenus?: Record<BuildInLaunchMenus, boolean> | boolean;
+
+    /**
+     * 是否开启模块缓存
+     *
+     * 该功能可以加快命令启动速度，但新增业务模块或修改菜单功能时需要执行一次更新命令
+     */
+    enableCache?: boolean;
 }
 export type { LaunchConfig }
 
@@ -91,41 +98,49 @@ enum MenuAvailability {
 }
 
 /**已有的包 */
-const Packages: IPackages = {};
+var Packages: IPackages = {};
 const BasePath = path.resolve(
     process.cwd()
     , "packages"
 );
 
-try {
-    fs.readdirSync(BasePath).forEach(name => {
-        try {
-            const meta = require(`${BasePath}/${name}/package.json`);
-            if (meta && meta.sequence !== -1) {
-                const pack: IPack = {
-                    "name": `${name.replace(/^[a-z]/, m => m.toUpperCase())}: ${meta.description}`
-                    , "value": meta.name
-                    , "index": meta.sequence === undefined ? MAGIC_CODE : meta.sequence
-                    , "version": meta.version
-                    , "isServices": meta.isServices
-                };
-                Packages[name] = pack;
+/**扫描业务目录 */
+function scan() {
+    try {
+        fs.readdirSync(BasePath).forEach(name => {
+            try {
+                const meta = require(`${BasePath}/${name}/package.json`);
+                if (meta && meta.sequence !== -1) {
+                    const pack: IPack = {
+                        "name": `${name.replace(/^[a-z]/, m => m.toUpperCase())}: ${meta.description}`
+                        , "value": meta.name
+                        , "index": meta.sequence === undefined ? MAGIC_CODE : meta.sequence
+                        , "version": meta.version
+                        , "isServices": meta.isServices
+                    };
+                    Packages[name] = pack;
+                }
+            } catch (e) {
+                if (e.code !== "MODULE_NOT_FOUND") {
+                    console.log(e);
+                }
             }
-        } catch (e) {
-            if (e.code !== "MODULE_NOT_FOUND") {
-                console.log(e);
-            }
+        });
+    } catch (e) {
+        if (e.code !== "MODULE_NOT_FOUND") {
+            console.log(e);
         }
-    });
-} catch (e) {
-    if (e.code !== "MODULE_NOT_FOUND") {
-        console.log(e);
     }
 }
 
-const BuildSequence = Object.keys(Packages)
-    .sort((now, next) => Packages[now].index - Packages[next].index)
-    .map(key => Packages[key].value);
+/**构建顺序 */
+var BuildSequence: string[];
+/**生成构建顺序 */
+function genBuildSequence() {
+    BuildSequence = Object.keys(Packages)
+        .sort((now, next) => Packages[now].index - Packages[next].index)
+        .map(key => Packages[key].value);
+}
 
 /**默认配置 */
 const DefConfig: LaunchConfig = {
@@ -154,6 +169,81 @@ const Inquirers = {
     /**初始化项目 */
     , sysBoot
 }
+
+/**自定义菜单文件名 */
+type CustomInquirerName = string;
+
+/**自定义菜单模块地址 */
+type CustomInquirerPath = string;
+
+interface ICache {
+    /**业务包 */
+    packages: IPackages;
+
+    /**构建顺序 */
+    buildSequence: string[];
+
+    /**用户自定义包信息 */
+    customs: Record<CustomInquirerName, CustomInquirerPath>;
+}
+
+/**获取缓存数据 */
+function getFromCache(enable: boolean) {
+    var data: ICache = null;
+    if (enable) {
+        const filePath = join(__dirname, ".temp", "xlaunch.cache.json");
+        if (checkFileStat(filePath)) {
+            data = require(filePath);
+        }
+    }
+    return data;
+}
+
+/**保存缓存数据 */
+function saveToCache(data: ICache) {
+    const dirPath = join(__dirname, ".temp");
+    const filePath = join(__dirname, ".temp", "xlaunch.cache.json");
+    try {
+        if (!checkFileStat(filePath)) {
+            fs.mkdirSync(dirPath);
+        }
+        fs.writeFileSync(
+            join(dirPath, "xlaunch.cache.json")
+            // @ts-ignore
+            , JSON.stringify(data, 4, 4) // ???
+        );
+    } catch (e) {
+        console.log(
+            HeartbreakEmoji
+            , colors.red(e.message)
+        );
+        console.log(e);
+    }
+}
+
+/**清理缓存文件 */
+function cleanCache() {
+    const filePath = join(__dirname, ".temp", "xlaunch.cache.json");
+    if (checkFileStat(filePath)) {
+        try {
+            fs.rmSync(
+                join(__dirname, ".temp")
+                , {
+                    "force": true
+                    , "recursive": true
+                }
+            );
+        } catch (e) {
+            console.log(
+                HeartbreakEmoji
+                , colors.red(e.message)
+            );
+        }
+    }
+    console.log("🧹", "缓存清理完成");
+}
+export { cleanCache }
+
 
 class Launch {
 
@@ -253,6 +343,20 @@ class Launch {
 
     /**扫描相关文件夹 */
     #scan() {
+        const { enableCache } = this.#config;
+        const cache = getFromCache(enableCache);
+        const customs: Record<CustomInquirerName, CustomInquirerPath> = {};
+        var hasCache: boolean = false;
+        if (cache) {
+            hasCache = true;
+        } else if (!enableCache || !cache) {
+            scan();
+            genBuildSequence();
+        }
+        if (hasCache) {
+            this.#startFromCache(cache);
+            return this;
+        }
         const inquirerPath = path.resolve(
             this.#scriptDir
             , this.#config.inquirerDirName
@@ -265,6 +369,9 @@ class Launch {
                 if (availability === MenuAvailability.Valid) {
                     const mod: XLaunchInquirerExport = require(filePath);
                     if (mod && isExecutable(mod.processor) && mod.name) {
+                        if (enableCache) {
+                            customs[value] = filePath;
+                        }
                         this.#customMenus[value] = mod;
                         this.#menus.push({
                             "name": mod.name
@@ -298,7 +405,32 @@ class Launch {
                 );
             }
         }
+        if (enableCache) {
+            saveToCache({
+                "buildSequence": BuildSequence
+                , "packages": Packages
+                , customs
+            });
+        }
         return this;
+    }
+
+    /**从缓存启动 */
+    #startFromCache(cache: ICache) {
+        BuildSequence = cache.buildSequence;
+        Packages = cache.packages;
+        Object.keys(cache.customs).forEach(value => {
+            const filePath = cache.customs[value];
+            const mod: XLaunchInquirerExport = require(filePath);
+            if (mod && isExecutable(mod.processor) && mod.name) {
+                this.#customMenus[value] = mod;
+                this.#menus.push({
+                    "name": mod.name
+                    , value
+                });
+                this.#menusVal.push(value);
+            }
+        });
     }
 
     /**启动主操作菜单 */
@@ -426,9 +558,7 @@ class Launch {
         return copy(this.#config[key]);
     }
 }
-
 export { Launch }
 
 const XLaunch = new Launch();
-
 export { XLaunch }

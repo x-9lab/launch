@@ -1,8 +1,7 @@
+import { Launch, XLaunch, cleanCache } from "./launch";
 import type { LaunchConfig } from "./launch";
-import { Launch, XLaunch } from "./launch";
 import type { IPackages } from "./helper";
 import type { Inquirer } from "inquirer";
-
 
 declare global {
     /**monorepo 项目管理操作菜单 Launch 实例 */
@@ -36,6 +35,8 @@ function boot(conf: LaunchConfig = {}) {
 }
 
 export default boot;
+
+export { cleanCache }
 
 if (require.main === module) {
     boot();

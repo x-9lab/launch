@@ -18,9 +18,14 @@ cli.launch(
     {
         "cwd": argv.r || argv.root
         , "configPath": argv.f || argv.file
+        , "clean": argv.c || argv.clean
     }
     , function (env) {
-        require("../");
+        const { cleanCache } = require("../");
+        if (env.clean) {
+            cleanCache();
+            return;
+        }
         if (env.configPath) {
             xlaunch.loadConfig(env.configPath);
         }
