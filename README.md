@@ -55,6 +55,11 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
     };
     ```
     - `showStartDebugEnv` 显示启动 debug 环境，默认 `false`
+    - `enableCache` 是否开启模块缓存
+        注意，该功能可以加快命令启动速度，但新增业务模块或修改菜单功能时需要执行一次更新命令
+        ```bash
+        xlaunch --clean
+        ```
     - `ignoreMenus` 屏蔽内置菜单或某个(些)菜单
         - 取值为 `true` 时蔽所有内置菜单
             ```js
