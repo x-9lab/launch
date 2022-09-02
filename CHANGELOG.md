@@ -1,3 +1,16 @@
+## v1.1.0
+
+### Feat
+- feat: 支持从模块缓存以支持从缓存启动，提供清除缓存功能，增加独立 patchs 文件夹并将原有 patch 迁移到该文件夹 [c70dc76](https://github.com/x-9lab/launch/commit/c70dc76fcda6a5096d7b9b1d36b6c291c79d8b3e)
+- feat: xlaunch.spawn 支持与 spawn 一样的完整参数 [a8c2ea1](https://github.com/x-9lab/launch/commit/a8c2ea150d6d31e00938458d15bd7afbb474bac6)
+- feat: 独立输出 交互菜单操作函数 的类型 [ecd5061](https://github.com/x-9lab/launch/commit/ecd50613e31499eee06468c36d10e4c178e17749)
+- feat: 允许不显示某些菜单,包括预置菜单 [363239c](https://github.com/x-9lab/launch/commit/363239c4137fa14b431c105d5a915fd52d6a5a5e)
+- feat: types 文件作为独立文件夹输出 [7ccd757](https://github.com/x-9lab/launch/commit/7ccd7571233a8ef10d7902fada1b6fda2fbcbbe0)
+- feat: 使用 colors/safe ，避免污染 prototype [17de73a](https://github.com/x-9lab/launch/commit/17de73ab44611d107f4d8d493012f3bab7518d1f)
+
+### Fix
+- fix: 修复 example 中 version.js 显示问题 [8ff5cd4](https://github.com/x-9lab/launch/commit/8ff5cd4d43bd07081a2b67ef75adf600630afb7d)
+
 ## v1.0.1
 
 ### Feat
