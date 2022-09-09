@@ -1,3 +1,11 @@
+## v1.1.1
+
+### Fix
+- fix: 修复缓存清除模式不生效的问题 [446b0ef](https://github.com/x-9lab/launch/commit/446b0efa70a99b3e523e3228cdd99382f274a348)
+
+### Feat
+- feat: 支持从模块缓存以支持从缓存启动，提供清除缓存功能，增加独立 patchs 文件夹并将原有 patch 迁移到该文件夹 [0dc2a4e](https://github.com/x-9lab/launch/commit/0dc2a4efec7ea23ab7398bbbf1eaee75f3f0753b)
+
 ## v1.1.0
 
 ### Feat
