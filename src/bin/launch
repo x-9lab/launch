@@ -14,15 +14,17 @@ const cli = new Liftoff({
     }
 });
 
+/**是否是清除模式 */
+const clean = argv.c || argv.clean;
+
 cli.launch(
     {
         "cwd": argv.r || argv.root
         , "configPath": argv.f || argv.file
-        , "clean": argv.c || argv.clean
     }
     , function (env) {
         const { cleanCache } = require("../");
-        if (env.clean) {
+        if (clean) {
             cleanCache();
             return;
         }
