@@ -6,9 +6,9 @@ import sysBoot from "./@inquirer/sys-boot";
 import build from "./@inquirer/build";
 import start from "./@inquirer/start";
 import patch from "./@inquirer/patch";
+import path, { join } from "path";
 import dev from "./@inquirer/dev";
 import inquirer from "inquirer";
-import path, { join } from "path";
 import fs from "fs";
 
 /**菜单项 */

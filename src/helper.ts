@@ -89,6 +89,9 @@ async function job(names: string[], BuildSequence: string[], task: string, noSor
     var i = 0;
     try {
         for (; i < sequence.length; i++) {
+            console.log(
+                `👩‍🔧 ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} ` + colors.cyan("starting")
+            );
             await spawn("yarn", ["workspace", sequence[i], task]);
             console.log(
                 `📦 ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} ` + colors.green("success")
