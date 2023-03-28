@@ -1,3 +1,11 @@
+## v1.1.2
+
+### Feat
+- feat: 增加处理中勾子支持, 修改业务扫描逻辑, 现在明确不支持带有 . 的文件或文件夹 [263e496](https://github.com/x-9lab/launch/commit/263e496a35ebd22180bf61b0fa0284678c12167f)
+
+### Chore
+- chore: 增加任务执行的前置提示信息 [f2e0913](https://github.com/x-9lab/launch/commit/f2e0913edf661c47c31c334f465e83269b3cb2b0)
+
 ## v1.1.1
 
 ### Fix
