@@ -63,6 +63,9 @@ interface IHook {
 
     /**业务执行后 */
     onEnd?(): boolean;
+
+    /**处理中 */
+    onProcessing?: () => boolean;
 }
 
 type LaunchHooks = {
@@ -104,28 +107,32 @@ const BasePath = path.resolve(
     , "packages"
 );
 
+/**默认扫描数据处理函数 */
+function defScanProcessor(pkg: IPack) {
+    return pkg;
+}
+
 /**扫描业务目录 */
-function scan() {
+function scan(processor: Function = defScanProcessor) {
     try {
-        fs.readdirSync(BasePath).forEach(name => {
-            try {
-                const meta = require(`${BasePath}/${name}/package.json`);
-                if (meta && meta.sequence !== -1) {
-                    const pack: IPack = {
-                        "name": `${name.replace(/^[a-z]/, m => m.toUpperCase())}: ${meta.description}`
-                        , "value": meta.name
-                        , "index": meta.sequence === undefined ? MAGIC_CODE : meta.sequence
-                        , "version": meta.version
-                        , "isServices": meta.isServices
-                    };
-                    Packages[name] = pack;
-                }
-            } catch (e) {
-                if (e.code !== "MODULE_NOT_FOUND") {
-                    console.log(e);
-                }
+        const pkgDirs = fs.readdirSync(BasePath);
+        for (const name of pkgDirs) {
+            if (name.includes(".")) {
+                // 因不想把扫描逻辑搞的太复杂，所以不支持带有 . 的文件夹或文件
+                continue;
             }
-        });
+            const meta = require(`${BasePath}/${name}/package.json`);
+            if (meta && meta.sequence !== -1) {
+                const pack: IPack = {
+                    "name": `${name.replace(/^[a-z]/, m => m.toUpperCase())}: ${meta.description}`
+                    , "value": meta.name
+                    , "index": meta.sequence === undefined ? MAGIC_CODE : meta.sequence
+                    , "version": meta.version
+                    , "isServices": meta.isServices
+                };
+                Packages[name] = processor(pack, meta);
+            }
+        }
     } catch (e) {
         if (e.code !== "MODULE_NOT_FOUND") {
             console.log(e);
@@ -350,7 +357,12 @@ class Launch {
         if (cache) {
             hasCache = true;
         } else if (!enableCache || !cache) {
-            scan();
+            let hooks = this.#menuHooks.scan || {};
+            let { onEnd, onProcessing } = hooks;
+            scan(onProcessing);
+            if (isExecutable(onEnd)) {
+                onEnd.call(this, Packages);
+            }
             genBuildSequence();
         }
         if (hasCache) {
@@ -546,7 +558,7 @@ class Launch {
         if (isObject(setting)) {
             Object.keys(setting).forEach(key => {
                 const hook = setting[key];
-                if (isExecutable(hook.onEnd) || isExecutable(hook.onStart)) {
+                if (isExecutable(hook.onEnd) || isExecutable(hook.onProcessing) || isExecutable(hook.onStart)) {
                     this.#menuHooks[key] = setting[key];
                 }
             });
