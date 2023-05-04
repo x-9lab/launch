@@ -1,9 +1,9 @@
+import type { CommonSpawnOptions } from "child_process";
 import { isArray } from "@x-drive/utils";
 import crossSpawn from "cross-spawn";
 import colors from "colors/safe";
 import path from "path";
 import fs from "fs";
-import type { CommonSpawnOptions } from "child_process";
 
 interface IPack {
     /**项目名 */
@@ -45,6 +45,7 @@ function spawn(
     , options: CommonSpawnOptions = {
         "stdio": "inherit"
     }
+    , quiet: boolean = true
 ) {
     return new Promise((res, rej) => {
         crossSpawn(
@@ -52,14 +53,18 @@ function spawn(
             , args
             , options
         ).on("error", (err: Error) => {
-            console.error(err);
+            if (!quiet) {
+                console.error(err);
+            }
             rej(err);
         }).on("close", (code: number) => {
             if (Number(code) !== 0) {
                 const err = new SpawnError(`子进程退出, Code: ${code}`);
-                err.code = code;
-                // TODO: 自动拉起来？
-                console.error(err)
+                if (!quiet) {
+                    err.code = code;
+                    // TODO: 自动拉起来？
+                    console.error(err)
+                }
                 rej(err);
             } else {
                 res(true);
@@ -76,9 +81,10 @@ export { spawn };
  * @param names          要运行的项目名称列表
  * @param BuildSequence  所有运行的项目列表
  * @param task           运行的命令名称
- * @param noSort         运行的命令名称
+ * @param noSort         忽略编译顺序声明
+ * @param quiet          是否静默执行
  */
-async function job(names: string[], BuildSequence: string[], task: string, noSort: boolean = false) {
+async function job(names: string[], BuildSequence: string[], task: string, noSort: boolean = false, quiet: boolean = true) {
     if ((!isArray(names) || !names.length) && !noSort) {
         return;
     }
@@ -92,7 +98,7 @@ async function job(names: string[], BuildSequence: string[], task: string, noSor
             console.log(
                 `👩‍🔧 ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} ` + colors.cyan("starting")
             );
-            await spawn("yarn", ["workspace", sequence[i], task]);
+            await spawn("yarn", ["workspace", sequence[i], task], undefined, quiet);
             console.log(
                 `📦 ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} ` + colors.green("success")
             );
