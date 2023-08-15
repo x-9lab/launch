@@ -6,6 +6,7 @@ export const EXIT_PACK: IPack = {
     , "value": ""
     , "index": -1
     , "isServices": false
+    , "isStatic": false
     , "version": ""
 }
 

@@ -1,6 +1,6 @@
 {
     "name": "@x-9lab/launch",
-    "version": "1.1.3",
+    "version": "1.1.5",
     "description": "monorepo 项目管理操作菜单",
     "main": "dist/index.js",
     "types": "./@types/index.d.ts",
@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "colors": "1.4.0",
-        "@x-drive/utils": "1.1.19",
+        "@x-drive/utils": "1.1.24",
         "cross-spawn": "7.0.3",
         "minimist": "1.2.6",
         "liftoff": "3.1.0",

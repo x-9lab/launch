@@ -128,7 +128,8 @@ function scan(processor: Function = defScanProcessor) {
                     , "value": meta.name
                     , "index": meta.sequence === undefined ? MAGIC_CODE : meta.sequence
                     , "version": meta.version
-                    , "isServices": meta.isServices
+                    , "isServices": Boolean(meta.isServices)
+                    , "isStatic": Boolean(meta.isStatic)
                 };
                 Packages[name] = processor(pack, meta);
             }

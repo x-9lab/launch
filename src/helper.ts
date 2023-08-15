@@ -20,6 +20,9 @@ interface IPack {
 
     /**是否是可运行的服务 */
     isServices: boolean;
+
+    /**是否是直接部署的静态文件 */
+    isStatic: boolean;
 }
 export type { IPack };
 
@@ -59,13 +62,12 @@ function spawn(
             rej(err);
         }).on("close", (code: number) => {
             if (Number(code) !== 0) {
-                const err = new SpawnError(`子进程退出, Code: ${code}`);
                 if (!quiet) {
+                    const err = new SpawnError(`子进程退出, Code: ${code}`);
                     err.code = code;
-                    // TODO: 自动拉起来？
                     console.error(err)
+                    rej(err);
                 }
-                rej(err);
             } else {
                 res(true);
             }
