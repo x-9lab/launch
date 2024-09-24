@@ -1,3 +1,12 @@
+## v1.2.1
+
+### Fix
+- fix: 修复因缓存文件导致的问题 [dabf5b5](https://github.com/x-9lab/launch/commit/dabf5b5b36a73252f54a7314dd5c5620b33a0766)
+
+### Feat
+- feat: 增加 Inquirer 类型导出 [8a7675e](https://github.com/x-9lab/launch/commit/8a7675e8dbd30840ed6ae0e5f79d932eb4086175)
+- feat: 升级基础模块并针对性调整项目代码 [99265d1](https://github.com/x-9lab/launch/commit/99265d1efacd683773dceabc2908250024922967)
+
 ## v1.2.0
 
 ### Feat
