@@ -17,7 +17,7 @@ const cli = new Liftoff({
 /**是否是清除模式 */
 const clean = argv.c || argv.clean;
 
-cli.launch(
+cli.prepare(
     {
         "cwd": argv.r || argv.root
         , "configPath": argv.f || argv.file
