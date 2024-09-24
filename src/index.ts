@@ -37,6 +37,8 @@ export default boot;
 
 export { cleanCache }
 
+export type { Inquirer }
+
 if (require.main === module) {
     boot();
 }
