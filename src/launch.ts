@@ -503,6 +503,12 @@ class Launch {
                     onEnd();
                 }
                 hooks = null;
+            })
+            .catch(e => {
+                if (e.message && (e.message as string).startsWith("User force closed the prompt")) {
+                    return;
+                }
+                console.log(e);
             });
     }
 
