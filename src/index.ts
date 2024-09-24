@@ -1,7 +1,6 @@
 import { Launch, XLaunch, cleanCache } from "./launch";
+import type { IPackages, Inquirer } from "./helper";
 import type { LaunchConfig } from "./launch";
-import type { IPackages } from "./helper";
-import type { Inquirer } from "inquirer";
 
 declare global {
     /**monorepo 项目管理操作菜单 Launch 实例 */

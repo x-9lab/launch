@@ -2,8 +2,15 @@ import type { CommonSpawnOptions } from "child_process";
 import { isArray } from "@x-drive/utils";
 import crossSpawn from "cross-spawn";
 import colors from "colors/safe";
+import inquirer from "inquirer";
 import path from "path";
 import fs from "fs";
+
+
+
+
+type Inquirer = typeof inquirer;
+export type { Inquirer }
 
 interface IPack {
     /**项目名 */

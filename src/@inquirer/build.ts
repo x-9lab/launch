@@ -1,5 +1,4 @@
-import type { IPackages } from "../helper";
-import type { Inquirer } from "inquirer";
+import type { IPackages, Inquirer } from "../helper";
 import { EXIT_PACK } from "../consts";
 import { copy } from "@x-drive/utils";
 import { job } from "../helper";
@@ -25,7 +24,7 @@ async function build(inquirer: Inquirer, Packages: IPackages, BuildSequence: str
                 , "suffix": ""
                 , "choices": Object.keys(Packages)
                     .map(key => Packages[key])
-            }
+            } as any
         ])
         .then(async (answers) => {
             const { name } = answers;
@@ -43,6 +42,7 @@ async function buildMode(inquirer: Inquirer, Packages: IPackages, BuildSequence:
     exit.value = BuildModes.Exit;
 
     await inquirer.prompt<Record<string, BuildModes>>([
+        // @FIXME: 这里的类型定义告警
         {
             "type": "list"
             , "loop": false
@@ -60,7 +60,7 @@ async function buildMode(inquirer: Inquirer, Packages: IPackages, BuildSequence:
                 }
                 , exit
             ]
-        }
+        } as any
     ]).then(async (answers) => {
         const { name } = answers;
         switch (name) {

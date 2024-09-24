@@ -1,4 +1,4 @@
-import type { Inquirer } from "inquirer";
+import type { Inquirer } from "../helper";
 import { EXIT_PACK } from "../consts";
 
 enum PatchType {

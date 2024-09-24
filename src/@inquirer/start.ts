@@ -1,7 +1,6 @@
 import { copy, isBoolean, isObject, isString } from "@x-drive/utils";
-import type { IPackages } from "../helper";
+import type { IPackages, Inquirer } from "../helper";
 import type { MenuItem } from "../launch";
-import type { Inquirer } from "inquirer";
 import { EXIT_PACK } from "../consts";
 import { XLaunch } from "../launch";
 import { spawn } from "../helper";

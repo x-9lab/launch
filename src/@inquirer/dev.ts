@@ -1,5 +1,4 @@
-import type { IPackages } from "../helper";
-import type { Inquirer } from "inquirer";
+import type { IPackages, Inquirer } from "../helper";
 import { EXIT_PACK } from "../consts";
 import { spawn } from "../helper";
 
@@ -18,7 +17,8 @@ async function dev(inquirer: Inquirer, Packages: IPackages) {
     }
 
     await inquirer
-        .prompt([config])
+        // @FIXME: 这里的类型定义告警
+        .prompt<Record<string, string>>([config as any])
         .then(async (answers) => {
             if (answers.name === "" || Array.isArray(answers.name) && answers.name.indexOf("") !== -1) {
                 process.exit(0);
