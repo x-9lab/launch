@@ -1,3 +1,14 @@
+## v1.2.0
+
+### Feat
+- feat: 增加 Inquirer 类型导出 [42fbcb4](https://github.com/x-9lab/launch/commit/42fbcb4962668e4a30a3c98b4d21415904d6d1e9)
+- feat: 升级基础模块并针对性调整项目代码 [7775603](https://github.com/x-9lab/launch/commit/7775603e5967387998f36c8c883ab24d09ce49a6)
+- feat: 增加是否是直接部署的静态文件配置支持 [d2b71f3](https://github.com/x-9lab/launch/commit/d2b71f31d248b158fe39019d2193d003f6069967)
+- feat: 现在用户进程退出默认不显示异常信息 [88499fc](https://github.com/x-9lab/launch/commit/88499fc2ff64c50b3723b399552f693891a8869d)
+
+### Build
+- build: 禁止粘性滚动给 [127ae94](https://github.com/x-9lab/launch/commit/127ae94d73456846d61d4145ebcf37073801fd6a)
+
 ## v1.1.2
 
 ### Feat
