@@ -1,10 +1,10 @@
 import type { IPackages, Inquirer } from "../helper";
 import { EXIT_PACK } from "../consts";
+import { copy } from "@x-drive/utils";
 import { spawn } from "../helper";
 
 /**项目选择 */
 async function dev(inquirer: Inquirer, Packages: IPackages) {
-
     const config = {
         "type": "list"
         , "loop": false
@@ -13,7 +13,7 @@ async function dev(inquirer: Inquirer, Packages: IPackages) {
         , "suffix": ""
         , "choices": Object.keys(Packages)
             .map(key => Packages[key])
-            .concat([EXIT_PACK])
+            .concat([copy(EXIT_PACK)])
     }
 
     await inquirer

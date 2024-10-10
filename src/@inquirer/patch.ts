@@ -1,5 +1,6 @@
 import type { Inquirer } from "../helper";
 import { EXIT_PACK } from "../consts";
+import { copy } from "@x-drive/utils";
 
 enum PatchType {
     React24304 = "react-24304"
@@ -12,7 +13,7 @@ const PatchList = [
         "name": "React #24304"
         , "value": PatchType.React24304
     }
-    , EXIT_PACK
+    , copy(EXIT_PACK)
 ];
 
 async function patch(inquirer: Inquirer) {

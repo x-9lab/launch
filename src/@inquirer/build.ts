@@ -14,6 +14,8 @@ enum BuildModes {
 
 /**部分打包 */
 async function build(inquirer: Inquirer, Packages: IPackages, BuildSequence: string[]) {
+    const exit = copy(EXIT_PACK);
+    exit.value = BuildModes.Exit;
     return inquirer
         .prompt([
             {
@@ -24,6 +26,7 @@ async function build(inquirer: Inquirer, Packages: IPackages, BuildSequence: str
                 , "suffix": ""
                 , "choices": Object.keys(Packages)
                     .map(key => Packages[key])
+                    .concat([exit])
             } as any
         ])
         .then(async (answers) => {
