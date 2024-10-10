@@ -1,3 +1,11 @@
+## v1.2.3
+
+### Feat
+- feat: 多个内置菜单增加退出选项 [604a1be](https://github.com/x-9lab/launch/commit/604a1be1f09caecca1555d96bea20a7b40681795)
+
+### Fix
+- fix: 修复强制退出时出现的异常信息 [f2774b2](https://github.com/x-9lab/launch/commit/f2774b23ca1e1eff3c2f10ca2f285ccf13e54ab8)
+
 ## v1.2.1
 
 ### Fix
