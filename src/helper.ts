@@ -38,15 +38,22 @@ export type { IPackages }
 
 export { colors }
 
+/**子进程以非 0 退出码结束 */
 class SpawnError extends Error {
     code: number;
 }
+export { SpawnError }
 
 /**
  * spawn 模式执行一条命令
+ *
+ * quiet 只控制**是否打印错误**, 不影响 promise 是否结算 —— 无论如何都必须
+ * 结算, 否则调用方的 await 会永远挂住。
+ *
  * @param  command 命令
  * @param  args    参数
  * @param  options 配置对象
+ * @param  quiet   失败时是否静默, 不打印错误
  * @return      boolean
  */
 function spawn(
@@ -67,17 +74,19 @@ function spawn(
                 console.error(err);
             }
             rej(err);
-        }).on("close", (code: number) => {
-            if (Number(code) !== 0) {
-                if (!quiet) {
-                    const err = new SpawnError(`子进程退出, Code: ${code}`);
-                    err.code = code;
-                    console.error(err)
-                    rej(err);
-                }
-            } else {
+        }).on("close", (code: number, signal: string) => {
+            // 被信号杀掉时 code 为 null, 最常见的是用户 Ctrl+C 停掉 dev 服务,
+            // 那是正常操作不是失败
+            if (signal || Number(code) === 0) {
                 res(true);
+                return;
             }
+            const err = new SpawnError(`子进程退出, Code: ${code}`);
+            err.code = code;
+            if (!quiet) {
+                console.error(err);
+            }
+            rej(err);
         });
     });
 }
