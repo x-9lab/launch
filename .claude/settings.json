@@ -1,0 +1,9 @@
+{
+  "remoteControlAtStartup": false,
+  "disableRemoteControl": true,
+  "permissions": {
+    "allow": [],
+    "deny": [],
+    "additionalDirectories": []
+  }
+}
