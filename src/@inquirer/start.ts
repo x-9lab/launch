@@ -2,7 +2,6 @@ import { copy, isBoolean, isObject, isString } from "@x-drive/utils";
 import type { IPackages, Inquirer } from "../helper";
 import type { MenuItem } from "../launch";
 import { EXIT_PACK } from "../consts";
-import { XLaunch } from "../launch";
 import { spawn } from "../helper";
 
 enum CmdType {
@@ -69,10 +68,20 @@ async function startProject(inquirer: Inquirer, cmd: CmdType, onRootConf: boolea
     });
 }
 
+/**启动环境相关配置, 由调用方传入, 避免本模块反向依赖 launch */
+interface StartConfig {
+    /**环境启动命令在根目录 */
+    startAtRoot?: boolean | Record<string, boolean>;
+
+    /**显示启动 debug 环境 */
+    showStartDebugEnv?: boolean;
+}
+export type { StartConfig }
+
 /**启动环境 */
-async function start(inquirer: Inquirer, Packages: IPackages) {
-    const onRoot = XLaunch.getConfig("startAtRoot");
-    const showDebugEnv = XLaunch.getConfig("showStartDebugEnv");
+async function start(inquirer: Inquirer, Packages: IPackages, config: StartConfig = {}) {
+    const onRoot = config.startAtRoot;
+    const showDebugEnv = config.showStartDebugEnv;
     if (isObject(onRoot) || Boolean(onRoot) === false) {
         if (services.length === 0) {
             Object.keys(Packages).forEach(key => {

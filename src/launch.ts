@@ -1,4 +1,5 @@
 import { copy, isBoolean, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
+import { genBuildSequence, getBuildSequence, getPackages, setBuildSequence, setPack, setPackages } from "./registry";
 import { checkFileStat, spawn, walk, colors } from "./helper";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
@@ -100,8 +101,6 @@ enum MenuAvailability {
     , Valid
 }
 
-/**已有的包 */
-var Packages: IPackages = {};
 const BasePath = path.resolve(
     process.cwd()
     , "packages"
@@ -157,7 +156,7 @@ function scan(processor: Function = defScanProcessor) {
                     , "isStatic": Boolean(meta.isStatic)
                 };
                 // 用户钩子忘记 return 时兜底, 避免整个包变成 undefined
-                Packages[name] = processor(pack, meta) || pack;
+                setPack(name, processor(pack, meta) || pack);
             }
         } catch (e) {
             if (e.code === "MODULE_NOT_FOUND") {
@@ -172,15 +171,6 @@ function scan(processor: Function = defScanProcessor) {
             }
         }
     }
-}
-
-/**构建顺序 */
-var BuildSequence: string[];
-/**生成构建顺序 */
-function genBuildSequence() {
-    BuildSequence = Object.keys(Packages)
-        .sort((now, next) => Packages[now].index - Packages[next].index)
-        .map(key => Packages[key].value);
 }
 
 /**默认配置 */
@@ -395,7 +385,7 @@ class Launch {
             let { onEnd, onProcessing } = hooks;
             scan(onProcessing);
             if (isExecutable(onEnd)) {
-                onEnd.call(this, Packages);
+                onEnd.call(this, getPackages());
             }
             genBuildSequence();
         }
@@ -453,8 +443,8 @@ class Launch {
         }
         if (enableCache) {
             saveToCache({
-                "buildSequence": BuildSequence
-                , "packages": Packages
+                "buildSequence": getBuildSequence()
+                , "packages": getPackages()
                 , customs
             });
         }
@@ -463,8 +453,8 @@ class Launch {
 
     /**从缓存启动 */
     #startFromCache(cache: ICache) {
-        BuildSequence = cache.buildSequence;
-        Packages = cache.packages;
+        setBuildSequence(cache.buildSequence);
+        setPackages(cache.packages);
         Object.keys(cache.customs).forEach(value => {
             const filePath = cache.customs[value];
             const mod: XLaunchInquirerExport = require(filePath);
@@ -505,11 +495,18 @@ class Launch {
                         break;
 
                     case ModeTypes.Build:
-                        await Inquirers.build(inquirer, Packages, BuildSequence);
+                        await Inquirers.build(inquirer, getPackages(), getBuildSequence());
                         break;
 
                     case ModeTypes.Start:
-                        await Inquirers.start(inquirer, Packages);
+                        await Inquirers.start(
+                            inquirer
+                            , getPackages()
+                            , {
+                                "startAtRoot": this.#config.startAtRoot
+                                , "showStartDebugEnv": this.#config.showStartDebugEnv
+                            }
+                        );
                         break;
 
                     case ModeTypes.Patch:
@@ -517,7 +514,7 @@ class Launch {
                         break;
 
                     case ModeTypes.Dev:
-                        await Inquirers.dev(inquirer, Packages);
+                        await Inquirers.dev(inquirer, getPackages());
                         break;
 
                     case ModeTypes.Exit:
@@ -527,7 +524,7 @@ class Launch {
                     default:
                         let customMenus = this.#customMenus[answers.mode]
                         if (customMenus) {
-                            await customMenus.processor(inquirer, Packages, BuildSequence);
+                            await customMenus.processor(inquirer, getPackages(), getBuildSequence());
                         } else {
                             process.exit(0);
                         }
