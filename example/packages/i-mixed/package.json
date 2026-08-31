@@ -1,0 +1,17 @@
+{
+    "name": "@x-9lab/launch-example-i",
+    "version": "1.0.0",
+    "description": "测试包 I (混合, 应走 package.json)",
+    "private": true,
+    "useWorkspaces": true,
+    "main": "./src/index.js",
+    "author": "",
+    "license": "ISC",
+    "sequence": 6,
+    "scripts": {
+        "dev": "echo I dev",
+        "build": "echo I build"
+    },
+    "dependencies": {},
+    "devDependencies": {}
+}
