@@ -71,6 +71,26 @@ test("shell 包缺少 dir 时返回 null, 不拿 undefined 去执行", () => {
     );
 });
 
+test("脚本名撞上 Object.prototype 的键时不算已声明", () => {
+    // 直接 scripts[task] 会命中原型链, constructor / toString 会被当成
+    // "已声明的脚本"。对 shell 包尤其糟糕: 会拿 function Object() {...}
+    // 当命令去执行
+    const yarnPack = pack("@t/a", { "runner": "yarn-workspace", "scripts": {} });
+    const shellPack = pack("x", { "runner": "shell", "dir": "/tmp/x", "scripts": {} });
+
+    ["constructor", "toString", "hasOwnProperty", "valueOf"].forEach(name => {
+        assert.strictEqual(resolveCommand(yarnPack, name), null, name);
+        assert.strictEqual(resolveCommand(shellPack, name), null, name);
+    });
+});
+
+test("脚本值不是字符串时视为未声明", () => {
+    assert.strictEqual(
+        resolveCommand(pack("x", { "runner": "shell", "dir": "/tmp/x", "scripts": { "build": 123 } }), "build")
+        , null
+    );
+});
+
 test("runner 缺失时回退到 yarn workspace", () => {
     const cmd = resolveCommand(pack("@t/legacy", { "scripts": { "build": "tsc" } }), "build");
 
