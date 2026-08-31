@@ -137,8 +137,15 @@ export type { ResolvedCommand }
  * @return null 表示该包没有这个脚本, 调用方应跳过
  */
 function resolveCommand(pack: IPack, task: string): ResolvedCommand | null {
-    const script = pack.scripts && pack.scripts[task];
-    if (!script) {
+    const scripts = pack.scripts;
+    // 必须用 hasOwnProperty: 直接 scripts[task] 会命中 Object.prototype,
+    // 于是 constructor / toString 这类脚本名会被当成"已声明"。对 shell 包
+    // 尤其糟糕 —— 会拿着 function Object() { ... } 去当命令执行
+    if (!scripts || !Object.prototype.hasOwnProperty.call(scripts, task)) {
+        return null;
+    }
+    const script = scripts[task];
+    if (!script || typeof script !== "string") {
         return null;
     }
 

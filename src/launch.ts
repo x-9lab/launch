@@ -137,8 +137,10 @@ function scan(processor: Function = defScanProcessor) {
     // 一个清单文件都没有的目录, 多半是 packages/docs 这类非包目录, 逐个告警
     // 只会变成每次启动的噪音, 收敛成一行汇总
     const noManifest: string[] = [];
-    // 包名 -> 业务目录名, 用于发现重名
-    const claimed: Record<string, string> = {};
+    // 包名 -> 业务目录名, 用于发现重名。
+    // 用 Object.create(null) 而不是字面量: 包名可能撞上 Object.prototype 的键
+    // (constructor / toString 之类), 那样会被误判成重名
+    const claimed: Record<string, string> = Object.create(null);
 
     for (const entry of entries) {
         // 软链目录在 monorepo 里并不罕见, isDirectory() 对它返回 false, 需要一并放行

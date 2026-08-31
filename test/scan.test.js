@@ -283,6 +283,16 @@ test("清单损坏时报出是哪个文件坏了, 且不降级去读下一个清
     assert.match(result.stdout, /跳过 broken: package.json 解析失败/);
 });
 
+test("包名撞上 Object.prototype 的键时不误报重名", () => {
+    // 查重名的表若用字面量 {}, claimed["constructor"] 天然为真, 会误报
+    const root = fixture({ "weird": pkg("constructor", 1) });
+
+    const result = scanIn(root);
+
+    assert.deepStrictEqual(Object.keys(result.packages), ["weird"]);
+    assert.doesNotMatch(result.stdout, /声明了同一个包名/);
+});
+
 test("两个目录声明同一个包名时告警", () => {
     // Packages 以目录名为键而菜单传的是包名, 重名时后者永远反查不到
     const root = fixture({
