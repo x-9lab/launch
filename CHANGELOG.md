@@ -1,3 +1,11 @@
+## v1.2.4
+
+### Fix
+- fix(scan): B-POLYGLOT-2 修复单个包读取失败导致整个扫描中断 [82bef80](https://github.com/x-9lab/launch/commit/82bef80e265d6418568d195a3dc05dd7a5b61522)
+
+### Build
+- build: 增加屏蔽文件夹，增加 claude 设置 [d200bc7](https://github.com/x-9lab/launch/commit/d200bc73b2fc48f12502290e4123eb1c37ffadc7)
+
 ## v1.2.3
 
 ### Feat
