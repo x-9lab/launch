@@ -1,0 +1,14 @@
+# 故意与同目录 package.json 声明不一致的内容。
+# package.json 优先级更高，所以菜单里应当看到 package.json 里的描述与 sequence，
+# 而不是这里的。看到本文件的内容就说明优先级错了。
+
+[project]
+name = "@x-9lab/launch-example-i-WRONG"
+version = "9.9.9"
+description = "测试包 I (如果你看到这行说明优先级错了)"
+
+[tool.xlaunch]
+sequence = 99
+
+[tool.xlaunch.scripts]
+build = "echo I WRONG build"

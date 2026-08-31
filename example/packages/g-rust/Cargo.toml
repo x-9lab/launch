@@ -1,0 +1,11 @@
+[package]
+name = "example-g-rust"
+version = "0.1.0"
+description = "测试包 G (Rust)"
+
+[package.metadata.xlaunch]
+sequence = 5
+
+[package.metadata.xlaunch.scripts]
+build = "echo G build"
+dev = "echo G dev"

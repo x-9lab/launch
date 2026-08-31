@@ -1,0 +1,14 @@
+[project]
+name = "@x-9lab/launch-example-f"
+version = "1.0.0"
+description = "测试包 F (Python)"
+
+[tool.xlaunch]
+sequence = 0
+isServices = true
+
+[tool.xlaunch.scripts]
+build = "echo F build"
+dev = "echo F dev"
+"start-dev" = "echo F start-dev"
+"start-prod" = "echo F start-prod"
