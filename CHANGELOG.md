@@ -1,3 +1,30 @@
+## v1.3.0
+
+### ⚠️ 升级须知
+
+- **运行环境要求由 Node `>=14` 提升到 `>=18`**。TOML 解析依赖 `smol-toml`，它要求 Node 18；Node 14 与 16 分别已于 2023-04、2023-09 EOL。
+- **开启了 `enableCache` 的项目升级后请执行一次 `xlaunch --clean`**。缓存结构本次变更（新增 `dir` / `runner` / `scripts`），缓存文件已加入 schema 与 cwd 标识，不匹配时会自动失效，但主动清一次更稳妥。
+- **行为变更**：批量任务遇到未声明该脚本的包时，从「交给 yarn 报错并中止整批」改为「明确提示跳过并继续」。某个包**执行失败**仍然中止后续，语义不变。
+
+### 多语言支持
+
+子包不再必须是 JavaScript 项目。`scan` 按 `package.json` → `pyproject.toml` → `Cargo.toml` 的优先级探测清单，配置分别落在各语言官方留给第三方工具的命名空间（`[tool.xlaunch]` / `[package.metadata.xlaunch]`），版本号只有一份。
+
+`package.json` 排在语言清单之前是刻意的：现有为了被识别而放了 shim `package.json` 的包行为完全不变，删掉 shim 后自动切换到语言清单。详见 README 的「多语言支持」。
+
+### Feat
+- feat(runner): B-POLYGLOT-6 按包的 runner 决定执行方式 [e897dd1](https://github.com/x-9lab/launch/commit/e897dd164cc7533d445d6c655008e5a77cf8f060)
+- feat(manifest): B-POLYGLOT-5 支持 pyproject.toml 与 Cargo.toml 清单 [454841e](https://github.com/x-9lab/launch/commit/454841e43ede5543db043b846490928ed2889e89)
+
+### Fix
+- fix(spawn): 修复子进程非 0 退出码时 promise 永远挂起 [a6a06fb](https://github.com/x-9lab/launch/commit/a6a06fb0524d46d52accad69c2feaed726be1e85)
+
+### Chore
+- chore: 纳入 CLAUDE.md 与 batch-init skill [6fad4e3](https://github.com/x-9lab/launch/commit/6fad4e3085d1e04c2481e6a9282f425308b2d9f9)
+
+### Refactor
+- refactor(registry): B-POLYGLOT-3 抽离包信息注册表 [ff8b4a3](https://github.com/x-9lab/launch/commit/ff8b4a35df39e0a240e525ab5c1631ae6e541f87)
+
 ## v1.2.4
 
 ### Fix
