@@ -114,13 +114,38 @@ function defScanProcessor(pkg: IPack) {
 
 /**扫描业务目录 */
 function scan(processor: Function = defScanProcessor) {
+    var entries: fs.Dirent[];
+    // 读不到业务目录是致命的, 与单个包读取失败不同, 直接报错返回
     try {
-        const pkgDirs = fs.readdirSync(BasePath);
-        for (const name of pkgDirs) {
-            if (name.includes(".")) {
-                // 因不想把扫描逻辑搞的太复杂，所以不支持带有 . 的文件夹或文件
-                continue;
-            }
+        entries = fs.readdirSync(BasePath, { "withFileTypes": true });
+    } catch (e) {
+        console.log(
+            colors.red(`✗ 业务目录扫描失败: ${BasePath}`)
+        );
+        console.log(e);
+        return;
+    }
+
+    // readdirSync 的返回顺序由文件系统决定, 排序保证扫描与菜单顺序跨机器一致
+    entries.sort((now, next) => {
+        if (now.name === next.name) {
+            return 0;
+        }
+        return now.name < next.name ? -1 : 1;
+    });
+
+    for (const entry of entries) {
+        // 软链目录在 monorepo 里并不罕见, isDirectory() 对它返回 false, 需要一并放行
+        if (!entry.isDirectory() && !entry.isSymbolicLink()) {
+            continue;
+        }
+        const name = entry.name;
+        if (name.startsWith(".")) {
+            continue;
+        }
+
+        // try 收在循环内, 单个包读取失败只跳过它自己, 不再中断整个扫描
+        try {
             const meta = require(`${BasePath}/${name}/package.json`);
             if (meta && meta.sequence !== -1) {
                 const pack: IPack = {
@@ -131,12 +156,20 @@ function scan(processor: Function = defScanProcessor) {
                     , "isServices": Boolean(meta.isServices)
                     , "isStatic": Boolean(meta.isStatic)
                 };
-                Packages[name] = processor(pack, meta);
+                // 用户钩子忘记 return 时兜底, 避免整个包变成 undefined
+                Packages[name] = processor(pack, meta) || pack;
             }
-        }
-    } catch (e) {
-        if (e.code !== "MODULE_NOT_FOUND") {
-            console.log(e);
+        } catch (e) {
+            if (e.code === "MODULE_NOT_FOUND") {
+                console.log(
+                    colors.yellow(`⚠️  跳过 ${colors.bold(name)}: 未找到 package.json`)
+                );
+            } else {
+                console.log(
+                    colors.red(`⚠️  跳过 ${colors.bold(name)}: package.json 解析失败`)
+                );
+                console.log(e);
+            }
         }
     }
 }
