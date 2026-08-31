@@ -109,7 +109,8 @@ test("环境启动的项目列表只含 isServices 为真的包", async () => {
 });
 
 // startAtRoot 为 true 的分支无法在此覆盖: 它选完环境就直接 spawn("yarn", [env]),
-// 而 helper.spawn 在 quiet 为真(默认)且子进程退出码非 0 时既不 resolve 也不
-// reject, promise 会永远挂起。测试套件既不该真的执行命令, 也不该挂住。
-// 该 bug 已记入 master 的 Open Questions, 修掉并给 spawn 加上可注入的接缝之后
-// 再补这个用例。
+// 桩 inquirer 拦得住菜单, 拦不住 spawn。测试套件不该真的执行命令, 要补这个用例
+// 得先给 spawn 加一层可替换的执行器。
+//
+// 注: 最初这里记的原因是"spawn 会挂死", 那个 bug 是写本用例时发现的, 已由
+// fix(spawn) 修掉, 现在它会干脆地 reject。

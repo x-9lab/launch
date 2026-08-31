@@ -63,9 +63,13 @@ if (services.length === 0) { ...填充... }
 
 ### 有一条分支盖不住
 
-`startAtRoot` 为 `true` 时，选完环境直接 `spawn("yarn", [env])`，没有可注入的接缝。
-而 `helper.spawn` 在 `quiet` 为真（默认）且子进程退出码非 0 时**既不 resolve 也不 reject**，
-promise 永远挂起。测试套件不该真执行命令，更不该挂死，所以这条分支暂缺覆盖。
+`startAtRoot` 为 `true` 时，选完环境直接 `spawn("yarn", [env])`，**没有可注入的接缝** ——
+桩 inquirer 拦得住菜单，拦不住 spawn。测试套件不该真的执行命令，所以这条分支暂缺覆盖，
+要补得先给 spawn 加一层可替换的执行器。
+
+> 这条最初的记录说的是「spawn 在退出码非 0 时永远挂起，所以测试会挂死」。那个 bug 正是
+> 写这条用例时发现的，已在 `fix(spawn)` 修掉 —— 现在它会干脆地 reject。留不了用例的原因
+> 只剩「会真的执行命令」这一条。
 
 ---
 

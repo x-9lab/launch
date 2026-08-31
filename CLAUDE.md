@@ -57,22 +57,48 @@ yarn launch                   # 实际执行 ../dist/bin/launch
 2. `src/index.ts` —— 通过 `Object.defineProperty` 把单例 `XLaunch` 挂到 **global.xlaunch**（不可写），并用 `declare global` 声明 `XLaunchConfig` / `XLaunchInquirerExport` / `XLaunchInquirerExportProcessor`。
    全局对象在 `loadConfig()` 之前就已存在，这是用户配置文件能在顶层直接调用 `xlaunch.hooks({...})`、自定义菜单能直接用 `xlaunch.EXIT_PACK` / `xlaunch.spawn` 的原因。
 3. `src/launch.ts` —— `Launch` 类，`boot()` 依次执行私有方法 `#version()`（打 Logo）→ `#scan()`（扫包、扫自定义菜单）→ `#fire()`（弹出一级菜单并分发）。`#fire()` 只是**启动** prompt 就返回，不 await，所以 `boot()` 返回时扫描与缓存都已完成。
-4. `src/registry.ts` —— `Packages` / `BuildSequence` 的存放处。独立成模块是为了让 `helper.ts` 能按包名反查而不与 `launch.ts` 构成模块环（CJS 下环在初始化期拿到的是半成品 exports）。
+4. `src/registry.ts` —— `Packages` / `BuildSequence` 的存放处。独立成模块是为了让 `helper.ts` 能按包名反查而不与 `launch.ts` 构成模块环（CJS 下环在初始化期拿到的是半成品 exports）。它对 `helper.ts` 只有 `import type`，编译后擦除，所以是单向依赖。
+5. `src/manifest.ts` —— 清单适配器。纯函数，不碰全局状态，最好测。
 
-### 包扫描
+### 包扫描与清单适配
 
-`scan()` 读取 `path.resolve(process.cwd(), "packages")` 下的每个目录的 `package.json`。注意这里用的是 `process.cwd()`，**不是** `config.cwd`。
+`scan()` 遍历 `path.resolve(process.cwd(), "packages")` 下的每个目录。注意这里用的是 `process.cwd()`，**不是** `config.cwd`（`BasePath` 是模块级常量，在 `require` 时就已求值，早于 `loadConfig()`）。
 
-从子包 `package.json` 读取的约定字段：
+每个目录按优先级探测清单，命中即用（`src/manifest.ts` 的 `ADAPTERS`）：
+
+| 清单 | 元数据 | xlaunch 配置 | `runner` |
+| --- | --- | --- | --- |
+| `package.json` | 顶层字段 | 顶层字段 | `yarn-workspace` |
+| `pyproject.toml` | `[project]` | `[tool.xlaunch]` | `shell` |
+| `Cargo.toml` | `[package]` | `[package.metadata.xlaunch]` | `shell` |
+
+`package.json` 排最前是刻意的：带 shim 的旧包行为不变，删掉 shim 自动切语言清单。**版本号只从生态清单取，不允许被 xlaunch 配置段覆盖** —— 这是「消除双写」的落点，有测试守着。
+
+约定字段跨语言统一：
 
 - `sequence` —— 编译顺序。未声明时填入 `MAGIC_CODE`（709394，`src/consts.ts`）排到最后；`-1` 表示完全排除出可操作列表。
 - `isServices` —— 该包是否出现在「环境启动」菜单中。
 - `isStatic` —— 是否为直接部署的静态文件。
 - `description` —— 拼进菜单显示名。
 
-目录判定用 `Dirent` 的 `isDirectory() || isSymbolicLink()` —— 软链一定要一并放行，否则软链过来的包会从「能识别」变成「识别不到」。遍历前按目录名排序，因为 `readdirSync` 的顺序由文件系统决定。`genBuildSequence()` 按 `index` 排序产出 `BuildSequence`（包名数组），`helper.job()` 按该顺序串行执行 `yarn workspace <name> <task>`。
+适配器的 `parse()` 返回 `null` 表示「此清单不适用，继续试下一个」，**抛异常表示「文件在但坏了」，此时不再降级去读下一个清单** —— 否则用户会面对一个来路不明的菜单项。告警也分两类：一个清单都没有的目录收敛成一行汇总（多半是 `packages/docs` 这类），找到清单却读不出来则逐个报并说清找到了什么（Cargo workspace 根目录会落进这类）。
 
-`Packages` 以**业务目录名**为键，而 `IPack.value` 是清单里声明的**包名**，`BuildSequence` 与菜单选项传的都是后者 —— 所以需要 `registry.getPackByName()` 反查。
+目录判定用 `Dirent` 的 `isDirectory() || isSymbolicLink()` —— 软链一定要一并放行，否则软链过来的包会从「能识别」变成「识别不到」。遍历前按目录名排序，因为 `readdirSync` 的顺序由文件系统决定。
+
+`Packages` 以**业务目录名**为键，而 `IPack.value` 是清单里声明的**包名**，`BuildSequence` 与菜单选项传的都是后者 —— 所以需要 `registry.getPackByName()` 反查。两个目录声明同一包名时后者永远反查不到，扫描时会告警。
+
+### 执行分派
+
+`helper.resolveCommand(pack, task)` 是唯一的分派点，`job()` / `dev` / `start` 三处都走它：
+
+- `runner` 为 `shell` → 在 `pack.dir` 下经 `shell: true` 执行 `pack.scripts[task]`
+- 其余（含 `runner` 缺失）→ `yarn workspace <包名> <task>`
+
+分叉点是「要不要经 yarn workspace 代理」而非语言 —— 需要代理是因为依赖提升与软链归 yarn 管。`poetry run` / `cargo` / `docker compose` 都是脚本串的内容，不需要新增 runner。
+
+返回 `null` 表示该包没声明这个脚本，调用方跳过。查脚本必须用 `hasOwnProperty`，直接 `scripts[task]` 会命中 `Object.prototype`（`constructor` / `toString` 之类）。同理，`scan()` 里查重名的表用 `Object.create(null)`。
+
+`job()` 的 `try` 刻意留在 for 循环**外面**：某个包执行失败即中止后续，这是既有语义。注意该语义在 `helper.spawn` 修复之前从未真正成立过 —— 旧实现在 `quiet` 为真（默认）且退出码非 0 时既不 resolve 也不 reject，会静默挂死。
 
 ### 菜单体系
 
@@ -106,7 +132,8 @@ yarn launch                   # 实际执行 ../dist/bin/launch
 - 4 空格缩进，**逗号前置**的多行对象/数组（`, "key": value`）。
 - 对象字面量的 key 一律加引号。
 - JSDoc 注释用中文，所有面向用户的输出也是中文并带 emoji 前缀。
-- `tsconfig.json` 是宽松模式（`strict: false`、`noImplicitAny: false`、`strictNullChecks: false`）。
+- `tsconfig.json` 是宽松模式（`strict: false`、`noImplicitAny: false`、`strictNullChecks: false`）。tsc **只用来产出 `@types/`**（`--emitDeclarationOnly`），真正的 js 由 swc 逐文件转译成 CJS，所以配 `sourceMap` 之类的 js 产物选项没有意义。
+- `module` 用 `preserve`（隐含 `moduleResolution: "bundler"`）。不要改成 `node16` —— 那会按 Node 的 ESM/CJS 门禁来判，而 swc 逐文件转译并不走那套：`patch.ts` 的动态 import 会被要求写 `.js` 后缀，`smol-toml` 因为声明了 `"type": "module"` 会被判成不可 require（尽管它有 `require` 导出条件）。也不要用 `moduleResolution: "node"` 或 `baseUrl`，二者在 TS 7.0 会失效。
 - inquirer v11 的类型定义与本项目用法有冲突，现有代码用 `as any` + `// @FIXME: 这里的类型定义告警` 绕过，遇到同类问题照此处理。
 - 工具函数优先从 `@x-drive/utils` 取（`copy` / `merge` / `isObject` / `isExecutable` / `isBoolean` / `isString` / `isArray` / `isUndefined`）。
 - 用户主动 Ctrl+C 时 inquirer 抛出以 `User force closed the prompt` 开头的错误，`#fire()` 中静默吞掉 —— 新增 prompt 时注意保持这一行为。该错误实际由 `@inquirer/core` 挂在 signal-exit 的 `onExit` 上，**由进程退出触发而非按键**，所以假流测不出来，详见 [`docs/testing-inquirer.md`](docs/testing-inquirer.md) 第五节。
