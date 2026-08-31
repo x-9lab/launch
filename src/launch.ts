@@ -1,6 +1,6 @@
 import { copy, isBoolean, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
 import { genBuildSequence, getBuildSequence, getPackages, setBuildSequence, setPack, setPackages } from "./registry";
-import { checkFileStat, spawn, walk, colors } from "./helper";
+import { checkFileStat, spawn, walk, colors, SpawnError } from "./helper";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
 import sysBoot from "./@inquirer/sys-boot";
@@ -536,6 +536,15 @@ class Launch {
             })
             .catch(e => {
                 if (e.message && (e.message as string).startsWith("User force closed the prompt")) {
+                    return;
+                }
+                if (e instanceof SpawnError) {
+                    // 子进程用的是 stdio inherit, 失败原因已经打在终端上了,
+                    // 再抛一份堆栈没有意义
+                    console.log(
+                        HeartbreakEmoji
+                        , colors.red(`命令执行失败, 退出码 ${e.code}`)
+                    );
                     return;
                 }
                 console.log(e);
