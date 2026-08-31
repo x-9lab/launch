@@ -1,8 +1,9 @@
 import { copy, isBoolean, isObject, isString } from "@x-drive/utils";
+import { spawn, resolveCommand, colors } from "../helper";
 import type { IPackages, Inquirer } from "../helper";
+import { getPackByName } from "../registry";
 import type { MenuItem } from "../launch";
 import { EXIT_PACK } from "../consts";
-import { spawn } from "../helper";
 
 enum CmdType {
     /**启动 dev 环境 */
@@ -61,9 +62,18 @@ async function startProject(inquirer: Inquirer, cmd: CmdType, onRootConf: boolea
             process.exit(0);
         }
         if (isOnRoot(onRootConf, answers.name)) {
+            // 根目录执行, 与具体包无关, 保持原样
             await spawn("yarn", [cmd]);
         } else {
-            await spawn("yarn", ["workspace", answers.name, cmd]);
+            const pack = getPackByName(answers.name);
+            const resolved = pack && resolveCommand(pack, cmd);
+            if (!resolved) {
+                console.log(
+                    colors.yellow(`⚠️  ${colors.bold(answers.name)} 未声明 ${cmd} 脚本`)
+                );
+                return;
+            }
+            await spawn(resolved.command, resolved.args, resolved.options);
         }
     });
 }

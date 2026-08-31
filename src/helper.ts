@@ -1,4 +1,6 @@
 import type { CommonSpawnOptions } from "child_process";
+// registry 对本模块只有 import type, 编译后擦除, 不构成运行时环
+import { getPackByName } from "./registry";
 import { isArray } from "@x-drive/utils";
 import crossSpawn from "cross-spawn";
 import colors from "colors/safe";
@@ -108,6 +110,61 @@ function spawn(
 export { spawn };
 
 
+/**一条可执行命令 */
+interface ResolvedCommand {
+    /**命令 */
+    command: string;
+
+    /**参数 */
+    args: string[];
+
+    /**配置对象 */
+    options?: CommonSpawnOptions;
+}
+export type { ResolvedCommand }
+
+/**
+ * 解析出一条可执行命令
+ *
+ * 分派依据是包的 runner: 只有 package.json 声明的包需要经 yarn workspace
+ * 代理, 因为依赖提升与软链归 yarn 管; 其余一律在包目录下执行声明的脚本串。
+ *
+ * shell 分支用 cross-spawn 的 shell 选项而不是写死 sh -c: 它在 POSIX 用
+ * /bin/sh、Windows 用 cmd.exe, 写死 sh 等于主动放弃 Windows。
+ *
+ * @param  pack 包信息
+ * @param  task 脚本名
+ * @return null 表示该包没有这个脚本, 调用方应跳过
+ */
+function resolveCommand(pack: IPack, task: string): ResolvedCommand | null {
+    const script = pack.scripts && pack.scripts[task];
+    if (!script) {
+        return null;
+    }
+
+    if (pack.runner === "shell") {
+        if (!pack.dir) {
+            return null;
+        }
+        return {
+            "command": script
+            , "args": []
+            , "options": {
+                "shell": true
+                , "cwd": pack.dir
+                , "stdio": "inherit"
+            }
+        };
+    }
+
+    // runner 缺失时回退到旧行为, 不拿着 undefined 的 dir 去执行
+    return {
+        "command": "yarn"
+        , "args": ["workspace", pack.value, task]
+    };
+}
+export { resolveCommand };
+
 /**
  * 执行脚本
  * @param names          要运行的项目名称列表
@@ -125,12 +182,33 @@ async function job(names: string[], BuildSequence: string[], task: string, noSor
         return BuildSequence.indexOf(now) - BuildSequence.indexOf(next);
     });
     var i = 0;
+    // try 刻意留在循环外: 某个包执行失败即中止后续, 这是既有语义
     try {
         for (; i < sequence.length; i++) {
+            const pack = getPackByName(sequence[i]);
+            if (!pack) {
+                // 打包菜单会把退出项的取值一起塞进来, 在这里兜住
+                console.log(
+                    `⏭  ${colors.bold(sequence[i])} ` + colors.grey("未找到包信息, 跳过")
+                );
+                continue;
+            }
+
+            const cmd = resolveCommand(pack, task);
+            if (!cmd) {
+                // 原先会照样执行 yarn workspace X task 交给 yarn 报错,
+                // 而 try 在循环外, 于是整批中止。现在明确跳过
+                console.log(
+                    `⏭  ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} `
+                    + colors.grey("未声明该脚本, 跳过")
+                );
+                continue;
+            }
+
             console.log(
                 `👩‍🔧 ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} ` + colors.cyan("starting")
             );
-            await spawn("yarn", ["workspace", sequence[i], task], undefined, quiet);
+            await spawn(cmd.command, cmd.args, cmd.options, quiet);
             console.log(
                 `📦 ${colors.bold(sequence[i])} ` + `${colors.cyan(task)} ` + colors.green("success")
             );

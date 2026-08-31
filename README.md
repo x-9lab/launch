@@ -19,7 +19,7 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
 1. 执行 `yarn build` 编译模块生产模式
 
 ## 注意事项
-1. 部分脚本使用了 nodeJS 的高版本特性，需要 nodeJs v14 以上版本
+1. 部分脚本使用了 nodeJS 的高版本特性，需要 nodeJs v18 以上版本（v1.3.0 起由 v14 提升，Node 14 / 16 均已 EOL）
 1. 正常情况 js 环境也能识别到模块的相关定义，如发现各种定义提示失效，也可手动引入定义，如使用注释引入:
     ```ts
     // @filename: @x-9lab/launch/@types/index.d.ts
@@ -115,7 +115,7 @@ dev = "cargo watch -x run"
     - `wellcomFileName` 启动 Logo 输出文件名，默认为 `null`
     - `inquirerDirName` 交互菜单目录名称，默认为 `@inquirer`
     - `startAtRoot` 环境启动命令在根目录，默认 `false`
-        - 可以单独指定某个包是在根目录上执行，被指定的包 `package.json` 中 `isServices` 字段必须为 `true`
+        - 可以单独指定某个包是在根目录上执行，被指定的包清单中 `isServices` 字段必须为 `true`
     ```js
     /**
     * 配置项
@@ -229,13 +229,13 @@ dev = "cargo watch -x run"
 简单用法请参考 `example` 中的项目
 
 ### 代码开发
-`launch` 调用指定包 `package.json` scripts 字段中的 `dev` 命令
+`launch` 调用指定包清单中声明的 `dev` 脚本
 
 ### 代码打包
-`launch` 调用指定包 `package.json` scripts 字段中的 `build` 命令
+`launch` 调用指定包清单中声明的 `build` 脚本
 
 ### 环境启动
-根据选择的启动类型，开发环境调用指定包 `package.json` scripts 字段中的 `start-dev` 命令，生产环境调用 `start-prod` 命令
+根据选择的启动类型，开发环境调用指定包清单中声明的 `start-dev` 脚本，生产环境调用 `start-prod`
 
 ### 初始化项目
 `launch` 调用根目录下 `package.json` scripts 字段中的 `boot` 命令
@@ -247,7 +247,9 @@ dev = "cargo watch -x run"
 退出 `launch` 的选项操作
 
 ### 定义多个包之间可能存在依赖关系
-由于多个包之间可能存在依赖关系，在多个包同时编译时需要按照一定顺序进行。`launch` 在执行的时候会根据子包的 `package.json` 中的 `sequence` 字段做排序，按数字顺序编译以确保输出结果。开发者需要自己维护这个编译顺序。
+由于多个包之间可能存在依赖关系，在多个包同时编译时需要按照一定顺序进行。`launch` 在执行的时候会根据子包清单中的 `sequence` 字段做排序，按数字顺序编译以确保输出结果，**排序在所有语言的包之间统一生效**。开发者需要自己维护这个编译顺序。
+
+未声明某个脚本的包会被明确跳过并提示，不会中断整批任务；某个包执行失败则中止后续。
 
 特殊取值：
 - 709394 其它未声明 `sequence` 字段的子包，该值由 `launch` 自动添加，请不要占用
