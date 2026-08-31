@@ -1,7 +1,8 @@
+import { spawn, resolveCommand, colors } from "../helper";
 import type { IPackages, Inquirer } from "../helper";
+import { getPackByName } from "../registry";
 import { EXIT_PACK } from "../consts";
 import { copy } from "@x-drive/utils";
-import { spawn } from "../helper";
 
 /**项目选择 */
 async function dev(inquirer: Inquirer, Packages: IPackages) {
@@ -23,7 +24,15 @@ async function dev(inquirer: Inquirer, Packages: IPackages) {
             if (answers.name === "" || Array.isArray(answers.name) && answers.name.indexOf("") !== -1) {
                 process.exit(0);
             }
-            await spawn("yarn", ["workspace", answers.name, "dev"]);
+            const pack = getPackByName(answers.name);
+            const cmd = pack && resolveCommand(pack, "dev");
+            if (!cmd) {
+                console.log(
+                    colors.yellow(`⚠️  ${colors.bold(answers.name)} 未声明 dev 脚本`)
+                );
+                return;
+            }
+            await spawn(cmd.command, cmd.args, cmd.options);
         });
 }
 export default dev;
