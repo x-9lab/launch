@@ -1,11 +1,13 @@
 # monorepo 项目管理操作菜单 Launch
 
-monorepo 类型的项目，在项目规模上一定规模后包含的子项目变多会使开发需要记住不同包的包名和不同的命令，`launch` 在启动的时候会扫描项目目录，根据包 `package.json` 中的信息收集信息并产生相关的操作菜单，为开发提供便捷。
+monorepo 类型的项目，在项目规模上一定规模后包含的子项目变多会使开发需要记住不同包的包名和不同的命令，`launch` 在启动的时候会扫描项目目录，根据各子包的清单文件收集信息并产生相关的操作菜单，为开发提供便捷。
 
-业务自项目 `package.json` 相关字段：
-- `scripts` 字段中的 `dev` 命令为代码开发命令，`build` 为生产编译命令
-- `scripts` 字段中的 `start-dev` 命令为开发环境启动命令，`start-prod` 为生产环境启动命令，`start-debug` 为 debug 环境启动命令
+子项目清单相关字段：
+- `scripts` 中的 `dev` 命令为代码开发命令，`build` 为生产编译命令
+- `scripts` 中的 `start-dev` 命令为开发环境启动命令，`start-prod` 为生产环境启动命令，`start-debug` 为 debug 环境启动命令
 - `sequence` 用于定义包编译顺序
+
+子包不必是 JavaScript 项目 —— 除 `package.json` 外也支持 `pyproject.toml` 与 `Cargo.toml`，见「多语言支持」。
 
 ## 开发
 1. clone 项目到本地
@@ -33,6 +35,77 @@ monorepo 类型的项目，在项目规模上一定规模后包含的子项目�
     };
 
     ```
+
+## 多语言支持
+
+`launch` 在每个子包目录下按以下优先级探测清单文件，命中即用：
+
+```
+package.json  >  pyproject.toml  >  Cargo.toml
+```
+
+`package.json` 排在语言清单之前是**刻意的**：现有为了被 launch 识别而放了 shim `package.json` 的包，行为完全不变；删掉 shim 后自动切换到语言清单，版本号从此只有一份。这给出一条零风险的迁移路径。
+
+xlaunch 的配置落在各语言官方留给第三方工具的命名空间里，不自造位置：
+
+| 清单 | 元数据取自 | xlaunch 配置写在 |
+| --- | --- | --- |
+| `package.json` | 顶层字段 | 顶层字段（与旧版一致） |
+| `pyproject.toml` | `[project]` | `[tool.xlaunch]`（PEP 518） |
+| `Cargo.toml` | `[package]` | `[package.metadata.xlaunch]`（Cargo Book） |
+
+三种清单都没有的目录会被跳过，并在启动时汇总提示一次。
+
+### Python 子包
+
+```toml
+[project]
+name = "gaia-flywheel"
+version = "1.0.1"
+description = "质量自省飞轮"
+
+[tool.xlaunch]
+sequence = 20
+isServices = true
+
+[tool.xlaunch.scripts]
+build = "docker build -t gaia-flywheel ."
+dev = ".venv/bin/flywheel-service --reload"
+"start-dev" = ".venv/bin/flywheel-service"
+```
+
+### Rust 子包
+
+```toml
+[package]
+name = "sensor-driver"
+version = "0.3.0"
+description = "传感器驱动"
+
+[package.metadata.xlaunch]
+sequence = 30
+
+[package.metadata.xlaunch.scripts]
+build = "cargo build --release"
+dev = "cargo watch -x run"
+```
+
+### 执行方式
+
+| 清单 | 执行方式 |
+| --- | --- |
+| `package.json` | `yarn workspace <包名> <脚本>`，与旧版一致 |
+| 其它 | 在**包目录下**直接执行声明的脚本串 |
+
+分界线是「要不要经 yarn workspace 代理」，不是语言 —— 需要代理是因为依赖提升与软链归 yarn 管。其余一律在包目录下执行脚本串，`poetry run` / `cargo` / `docker compose` 都写进脚本串即可，不需要额外的执行方式。
+
+`sequence` 与 `isServices` 等约定字段跨语言统一生效，编译顺序也在所有语言的包之间统一排序。
+
+### 注意
+
+- **非 JS 包不再需要 shim `package.json`**。删掉它之后，该包也会一并脱离 yarn workspaces、`lerna` 与 changelog 的覆盖范围 —— 后两者只认 `package.json`，这是本设计有意的取舍
+- 没有任何机器可读清单的项目（例如只有 `Makefile` 的 C 项目）目前不支持
+- 开启 `enableCache` 时缓存结构随本次改动变更，升级后请执行一次 `xlaunch --clean`
 
 ## 配置文件
 - 支持 `xlaunch.config.json` 或 `xlaunch.config.js` 为配置文件

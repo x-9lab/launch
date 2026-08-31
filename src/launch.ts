@@ -1,6 +1,7 @@
 import { copy, isBoolean, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
 import { genBuildSequence, getBuildSequence, getPackages, setBuildSequence, setPack, setPackages } from "./registry";
 import { checkFileStat, spawn, walk, colors, SpawnError } from "./helper";
+import { resolveManifest } from "./manifest";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
 import sysBoot from "./@inquirer/sys-boot";
@@ -133,6 +134,12 @@ function scan(processor: Function = defScanProcessor) {
         return now.name < next.name ? -1 : 1;
     });
 
+    // 一个清单文件都没有的目录, 多半是 packages/docs 这类非包目录, 逐个告警
+    // 只会变成每次启动的噪音, 收敛成一行汇总
+    const noManifest: string[] = [];
+    // 包名 -> 业务目录名, 用于发现重名
+    const claimed: Record<string, string> = {};
+
     for (const entry of entries) {
         // 软链目录在 monorepo 里并不罕见, isDirectory() 对它返回 false, 需要一并放行
         if (!entry.isDirectory() && !entry.isSymbolicLink()) {
@@ -143,33 +150,73 @@ function scan(processor: Function = defScanProcessor) {
             continue;
         }
 
-        // try 收在循环内, 单个包读取失败只跳过它自己, 不再中断整个扫描
-        try {
-            const meta = require(`${BasePath}/${name}/package.json`);
-            if (meta && meta.sequence !== -1) {
-                const pack: IPack = {
-                    "name": `${name.replace(/^[a-z]/, m => m.toUpperCase())}: ${meta.description}`
-                    , "value": meta.name
-                    , "index": meta.sequence === undefined ? MAGIC_CODE : meta.sequence
-                    , "version": meta.version
-                    , "isServices": Boolean(meta.isServices)
-                    , "isStatic": Boolean(meta.isStatic)
-                };
-                // 用户钩子忘记 return 时兜底, 避免整个包变成 undefined
-                setPack(name, processor(pack, meta) || pack);
-            }
-        } catch (e) {
-            if (e.code === "MODULE_NOT_FOUND") {
+        const result = resolveManifest(path.join(BasePath, name));
+
+        if (result.error) {
+            // 文件在但坏了, 是可操作的错误, 逐个报并附上异常
+            console.log(
+                colors.red(`⚠️  跳过 ${colors.bold(name)}: ${result.errorFile} 解析失败`)
+            );
+            console.log(result.error);
+            continue;
+        }
+
+        if (!result.parsed) {
+            if (result.found.length) {
+                // 找到清单却读不出来, 最常见的是 Cargo workspace 根目录
+                // (只有 [workspace] 没有 [package])。说清找到了什么, 便于排查
                 console.log(
-                    colors.yellow(`⚠️  跳过 ${colors.bold(name)}: 未找到 package.json`)
+                    colors.yellow(
+                        `⚠️  跳过 ${colors.bold(name)}: 找到 ${result.found.join(" / ")} `
+                        + `但没有可用的包声明`
+                    )
                 );
             } else {
-                console.log(
-                    colors.red(`⚠️  跳过 ${colors.bold(name)}: package.json 解析失败`)
-                );
-                console.log(e);
+                noManifest.push(name);
             }
+            continue;
         }
+
+        const manifest = result.parsed.manifest;
+        if (manifest.sequence === -1) {
+            continue;
+        }
+
+        if (claimed[manifest.name]) {
+            // Packages 以目录名为键而菜单传的是包名, 重名时后者永远反查不到
+            console.log(
+                colors.yellow(
+                    `⚠️  ${colors.bold(name)} 与 ${colors.bold(claimed[manifest.name])} `
+                    + `声明了同一个包名 ${colors.bold(manifest.name)}, 后者将无法被单独操作`
+                )
+            );
+        } else {
+            claimed[manifest.name] = name;
+        }
+
+        const pack: IPack = {
+            "name": `${name.replace(/^[a-z]/, m => m.toUpperCase())}: ${manifest.description}`
+            , "value": manifest.name
+            , "index": manifest.sequence === undefined ? MAGIC_CODE : manifest.sequence
+            , "version": manifest.version
+            , "isServices": Boolean(manifest.isServices)
+            , "isStatic": Boolean(manifest.isStatic)
+            , "dir": manifest.dir
+            , "runner": manifest.runner
+            , "scripts": manifest.scripts
+        };
+        // 第二个参数保持"解析后的原始清单对象", 兼容现有 onProcessing 钩子
+        // 用户钩子忘记 return 时兜底, 避免整个包变成 undefined
+        setPack(name, processor(pack, result.parsed.raw) || pack);
+    }
+
+    if (noManifest.length) {
+        console.log(
+            colors.yellow(
+                `⚠️  ${noManifest.length} 个目录没有可识别的清单, 已跳过: `
+                + noManifest.join(", ")
+            )
+        );
     }
 }
 
@@ -207,7 +254,20 @@ type CustomInquirerName = string;
 /**自定义菜单模块地址 */
 type CustomInquirerPath = string;
 
+/**
+ * 缓存结构版本
+ *
+ * 缓存的是扫描结果的结构。结构一变就必须 bump, 否则老缓存会产生残缺菜单。
+ */
+const CACHE_SCHEMA = 2;
+
 interface ICache {
+    /**缓存结构版本 */
+    schema: number;
+
+    /**产出这份缓存时的执行目录 */
+    cwd: string;
+
     /**业务包 */
     packages: IPackages;
 
@@ -218,30 +278,52 @@ interface ICache {
     customs: Record<CustomInquirerName, CustomInquirerPath>;
 }
 
-/**获取缓存数据 */
+/**缓存文件地址 */
+function cacheFile() {
+    return join(__dirname, ".temp", "xlaunch.cache.json");
+}
+
+/**
+ * 获取缓存数据
+ *
+ * 缓存写在**已安装包自身的 dist/.temp/ 里**, 不在宿主项目里, 文件本身不带
+ * 任何来源标识。所以除了 schema, 还要校验 cwd —— 否则同一份安装在不同项目
+ * 下运行会互相污染。
+ */
 function getFromCache(enable: boolean) {
     var data: ICache = null;
     if (enable) {
-        const filePath = join(__dirname, ".temp", "xlaunch.cache.json");
+        const filePath = cacheFile();
         if (checkFileStat(filePath)) {
             data = require(filePath);
         }
+    }
+    if (data && (data.schema !== CACHE_SCHEMA || data.cwd !== process.cwd())) {
+        return null;
     }
     return data;
 }
 
 /**保存缓存数据 */
-function saveToCache(data: ICache) {
+function saveToCache(data: Omit<ICache, "schema" | "cwd">) {
     const dirPath = join(__dirname, ".temp");
-    const filePath = join(__dirname, ".temp", "xlaunch.cache.json");
     try {
-        if (!checkFileStat(filePath)) {
-            fs.mkdirSync(dirPath);
+        if (!checkFileStat(dirPath)) {
+            fs.mkdirSync(dirPath, { "recursive": true });
         }
         fs.writeFileSync(
-            join(dirPath, "xlaunch.cache.json")
-            // @ts-ignore
-            , JSON.stringify(data, 4, 4) // ???
+            cacheFile()
+            , JSON.stringify(
+                Object.assign(
+                    {
+                        "schema": CACHE_SCHEMA
+                        , "cwd": process.cwd()
+                    }
+                    , data
+                )
+                , null
+                , 4
+            )
         );
     } catch (e) {
         console.log(

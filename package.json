@@ -20,22 +20,23 @@
         "changelog": "changelog"
     },
     "dependencies": {
-        "colors": "1.4.0",
         "@x-drive/utils": "1.1.26",
+        "colors": "1.4.0",
         "cross-spawn": "7.0.3",
-        "minimist": "1.2.6",
+        "inquirer": "11.0.2",
         "liftoff": "5.0.0",
-        "inquirer": "11.0.2"
+        "minimist": "1.2.6",
+        "smol-toml": "^1.8.0"
     },
     "devDependencies": {
-        "tslib": "2.3.0",
-        "chokidar": "3.5.3",
-        "typescript": "5.6.2",
-        "@types/node": "22.6.1",
-        "@types/inquirer": "9.0.7",
         "@swc/cli": "0.1.57",
         "@swc/core": "1.2.171",
-        "@x-drive/changelog": "1.1.6"
+        "@types/inquirer": "9.0.7",
+        "@types/node": "22.6.1",
+        "@x-drive/changelog": "1.1.6",
+        "chokidar": "3.5.3",
+        "tslib": "2.3.0",
+        "typescript": "5.6.2"
     },
     "repository": {
         "type": "git",
@@ -47,7 +48,7 @@
         "inquirer"
     ],
     "engines": {
-        "node": ">=14.0.0"
+        "node": ">=18.0.0"
     },
     "author": "digiaries <digiaries@hotmail.com>",
     "license": "MIT",
