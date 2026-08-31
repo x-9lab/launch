@@ -30,6 +30,20 @@ interface IPack {
 
     /**是否是直接部署的静态文件 */
     isStatic: boolean;
+
+    /**
+     * 包所在绝对路径
+     *
+     * 以下三个字段是可选的: EXIT_PACK 这类菜单哨兵并不是包, 不该被迫长出
+     * 包的字段。读取处需要做防御。
+     */
+    dir?: string;
+
+    /**执行方式 */
+    runner?: "yarn-workspace" | "shell";
+
+    /**脚本名 -> 命令 */
+    scripts?: Record<string, string>;
 }
 export type { IPack };
 

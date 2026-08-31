@@ -33,6 +33,21 @@ function makeFixture(packages) {
 }
 
 /**
+ * 往夹具的某个包目录里写一个清单文件
+ * @param root    夹具根目录
+ * @param dirName 业务目录名, 不存在则创建
+ * @param file    清单文件名
+ * @param content 文件内容
+ */
+function addManifest(root, dirName, file, content) {
+    const dir = path.join(root, "packages", dirName);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { "recursive": true });
+    }
+    fs.writeFileSync(path.join(dir, file), content);
+}
+
+/**
  * 往夹具里加一个软链目录, 链接目标放在 packages 之外
  * @param root 夹具根目录
  * @param name packages 下的软链名
@@ -90,6 +105,7 @@ function pkg(name, sequence) {
 
 module.exports = {
     makeFixture
+    , addManifest
     , addSymlinkPackage
     , addStrayFile
     , cleanFixture
