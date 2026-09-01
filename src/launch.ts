@@ -1,6 +1,6 @@
 import { copy, isBoolean, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
-import { genBuildSequence, getBuildSequence, getPackages, setBuildSequence, setPack, setPackages } from "./registry";
-import { checkFileStat, spawn, walk, colors, SpawnError } from "./helper";
+import { genBuildSequence, getBuildSequence, getPackByName, getPackages, setBuildSequence, setPack, setPackages } from "./registry";
+import { checkFileStat, spawn, resolveCommand, walk, colors, SpawnError } from "./helper";
 import { resolveManifest } from "./manifest";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
@@ -403,6 +403,17 @@ class Launch {
 
     /**spawn 模式执行一条命令 */
     spawn = spawn;
+
+    /**
+     * 解析出一条可执行命令
+     *
+     * 自定义菜单要执行某个包的脚本时用它, 不要自己写死 yarn workspace ——
+     * 那只对 package.json 声明的包成立。返回 null 表示该包没声明这个脚本。
+     */
+    resolveCommand = resolveCommand;
+
+    /**按包名反查包信息 */
+    getPackByName = getPackByName;
 
     /**实例启动状态 */
     private [LaunchStatusSymbol]: boolean = false;

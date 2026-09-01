@@ -189,6 +189,20 @@ dev = "cargo watch -x run"
     ```js
     const onRoot = XLaunch.getConfig("startAtRoot");
     ```
+- `getPackByName` 按包名反查包信息，查不到返回 `undefined`（**v1.3.0 新增**）
+    ```js
+    const pack = xlaunch.getPackByName("@scope/some-pkg");
+    ```
+- `resolveCommand` 解析出一条可执行命令，自动按包的 `runner` 分派（**v1.3.0 新增**）
+    ```js
+    const cmd = xlaunch.resolveCommand(pack, "build");
+    // package.json 的包 -> { command: "yarn", args: ["workspace", "<包名>", "build"] }
+    // 其它清单的包     -> { command: "<脚本串>", args: [], options: { shell: true, cwd: "<包目录>" } }
+    // 未声明该脚本     -> null
+    if (cmd) {
+        await xlaunch.spawn(cmd.command, cmd.args, cmd.options);
+    }
+    ```
 - `hooks` 设置某个(些)选项开始/结束的钩子
 
     定义：
@@ -341,25 +355,19 @@ interface IPack {
 
 #### 自定义菜单里执行某个包的命令
 
-**不要写死 `yarn workspace`** —— 那只对 `package.json` 声明的包成立。请依据 `runner` 分派：
+**不要写死 `yarn workspace`** —— 那只对 `package.json` 声明的包成立，非 JS 包会被静默执行错。用 `xlaunch.resolveCommand` 代为分派：
 
 ```js
 /**@type {XLaunchInquirerExportProcessor} */
-function processor(inquirer, Packages) {
-    const pack = Object.values(Packages).find(item => item.value === "your-pkg");
-    const script = pack.scripts && pack.scripts.build;
-    if (!script) {
-        console.log("该包未声明 build 脚本");
+async function processor(inquirer, Packages) {
+    const pack = xlaunch.getPackByName("your-pkg");
+    const cmd = pack && xlaunch.resolveCommand(pack, "build");
+    if (!cmd) {
+        console.log("该包不存在或未声明 build 脚本");
         return;
     }
-    if (pack.runner === "shell") {
-        // 非 JS 包：在包目录下执行声明的脚本串
-        return xlaunch.spawn(script, [], {
-            "shell": true
-            , "cwd": pack.dir
-            , "stdio": "inherit"
-        });
-    }
-    return xlaunch.spawn("yarn", ["workspace", pack.value, "build"]);
+    await xlaunch.spawn(cmd.command, cmd.args, cmd.options);
 }
 ```
+
+`resolveCommand` 返回 `null` 表示该包没声明这个脚本；否则返回 `{ command, args, options }`，直接摊给 `xlaunch.spawn` 即可。两者都是 **v1.3.0** 新增。
