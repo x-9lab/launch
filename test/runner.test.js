@@ -202,3 +202,21 @@ test("noSort 为真时按 BuildSequence 全量执行", async () => {
 
     assert.deepStrictEqual(executed(), ["a-pkg", "b-pkg"]);
 });
+
+// —— 全局对象上的导出 ——
+
+test("xlaunch 全局对象暴露 resolveCommand 与 getPackByName", () => {
+    // 自定义菜单要执行某个包的脚本时需要它们, 否则只能自己写死 yarn workspace,
+    // 那对非 JS 包是错的
+    require("../dist/index.js");
+
+    assert.strictEqual(typeof global.xlaunch.resolveCommand, "function");
+    assert.strictEqual(typeof global.xlaunch.getPackByName, "function");
+
+    const cmd = global.xlaunch.resolveCommand(
+        pack("py", { "runner": "shell", "dir": "/tmp/py", "scripts": { "build": "make" } })
+        , "build"
+    );
+    assert.strictEqual(cmd.command, "make");
+    assert.strictEqual(cmd.options.cwd, "/tmp/py");
+});
