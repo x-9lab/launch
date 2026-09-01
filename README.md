@@ -200,8 +200,13 @@ dev = "cargo watch -x run"
 
         /**业务执行后 */
         onEnd?(): boolean;
+
+        /**处理中 */
+        onProcessing?: () => boolean;
     }
     ```
+
+    键名为菜单取值（`dev` / `start` / `build` / `boot` / `patch`，或你自定义菜单的文件名）。
     例子：
     ```js
     xlaunch.hooks({
@@ -215,6 +220,31 @@ dev = "cargo watch -x run"
         }
     });
     ```
+
+    **`scan` 这个键上的语义与其它菜单不同**：它不是「前后置回调」，而是介入包扫描本身。
+
+    ```js
+    xlaunch.hooks({
+        "scan": {
+            /**
+             * 每扫描到一个包时调用一次，返回值会成为该包最终的信息
+             * @param pack 已归一化的包信息，即 IPack
+             * @param meta 解析后的**原始清单对象**
+             */
+            onProcessing(pack, meta) {
+                pack.releaseTo = meta.releaseTo;
+                return pack;          // 忘记 return 会导致该包信息丢失
+            }
+
+            /**扫描全部结束后调用，拿到完整的 Packages */
+            , onEnd(Packages) {
+                console.log("共发现", Object.keys(Packages).length, "个包");
+            }
+        }
+    });
+    ```
+
+    > ⚠️ **v1.3.0 起 `meta` 的类型取决于该包用的是哪种清单**：`package.json` 的包拿到的仍是 `package.json` 内容（与旧版一致）；`pyproject.toml` / `Cargo.toml` 的包拿到的是解析后的 TOML 对象，字段路径形如 `meta.project.name`、`meta.package.metadata.xlaunch`。如果你的钩子直接读了 `package.json` 的自定义字段，请先判断清单类型再取值。
 
 ## 使用
 1. 将 `@x-9lab/launch` 加入到 `devDependencies`
@@ -270,3 +300,66 @@ dev = "cargo watch -x run"
         processor(inquirer?: Inquirer, Packages?: IPackages, BuildSequence?: string[]): void;
     }
     ```
+
+#### processor 收到的参数
+
+`Packages` 以**业务目录名**为键，`BuildSequence` 是按 `sequence` 排好序的**包名**数组 —— 两者的键不同，需要用 `value` 反查。
+
+```ts
+/**单个包的信息 */
+interface IPack {
+    /**菜单显示名，形如 "A: 描述" */
+    name: string;
+
+    /**包名，即清单里声明的 name。菜单取值与 BuildSequence 用的都是它 */
+    value: string;
+
+    /**编译顺序。未声明时为 709394 */
+    index: number;
+
+    /**包版本 */
+    version: string;
+
+    /**是否是可运行的服务 */
+    isServices: boolean;
+
+    /**是否是直接部署的静态文件 */
+    isStatic: boolean;
+
+    /**包所在绝对路径 */
+    dir?: string;
+
+    /**执行方式 */
+    runner?: "yarn-workspace" | "shell";
+
+    /**该包声明的脚本，键为脚本名 */
+    scripts?: Record<string, string>;
+}
+```
+
+`dir` / `runner` / `scripts` 自 **v1.3.0** 起提供。`EXIT_PACK` 这类菜单哨兵不是包，这三个字段为空，读取时请做防御。
+
+#### 自定义菜单里执行某个包的命令
+
+**不要写死 `yarn workspace`** —— 那只对 `package.json` 声明的包成立。请依据 `runner` 分派：
+
+```js
+/**@type {XLaunchInquirerExportProcessor} */
+function processor(inquirer, Packages) {
+    const pack = Object.values(Packages).find(item => item.value === "your-pkg");
+    const script = pack.scripts && pack.scripts.build;
+    if (!script) {
+        console.log("该包未声明 build 脚本");
+        return;
+    }
+    if (pack.runner === "shell") {
+        // 非 JS 包：在包目录下执行声明的脚本串
+        return xlaunch.spawn(script, [], {
+            "shell": true
+            , "cwd": pack.dir
+            , "stdio": "inherit"
+        });
+    }
+    return xlaunch.spawn("yarn", ["workspace", pack.value, "build"]);
+}
+```
