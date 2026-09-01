@@ -6,7 +6,8 @@
     "types": "./@types/index.d.ts",
     "files": [
         "dist",
-        "@types"
+        "@types",
+        "!dist/.temp"
     ],
     "bin": {
         "xlaunch": "dist/bin/launch"
