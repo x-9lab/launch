@@ -91,3 +91,8 @@ package-lock.json
 # 暂时不提交的模块
 data-manager
 /temp
+
+# Claude Code 本地配置与个人 skill #
+######################################
+.claude/settings.local.json
+.claude/skills/batch-init/
