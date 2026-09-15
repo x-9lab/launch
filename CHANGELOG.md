@@ -1,3 +1,25 @@
+## v1.4.0
+
+### Feat
+- feat: xlaunch 对象增加 logger 和 uitls [6dcce60](https://github.com/x-9lab/launch/commit/6dcce6088686efada5277788171a948d572ee41b)
+- feat(api): 全局对象暴露 resolveCommand 与 getPackByName [67d986a](https://github.com/x-9lab/launch/commit/67d986a60d822655903bf7d6e8fce93eb6f1b377)
+- feat(runner): B-POLYGLOT-6 按包的 runner 决定执行方式 [2395e93](https://github.com/x-9lab/launch/commit/2395e9382bbee99c56a73cd3945d22782bfae5f2)
+- feat(manifest): B-POLYGLOT-5 支持 pyproject.toml 与 Cargo.toml 清单 [a635ea6](https://github.com/x-9lab/launch/commit/a635ea6d4d8f20092a61a655c1b8e5f038036ab7)
+
+### Chore
+- chore: 本地配置与个人 skill 移出版本追踪 [123fdf8](https://github.com/x-9lab/launch/commit/123fdf8d6fe18b3407a204a0a4493dce1f9afda5)
+- chore(tsconfig): 移除两个将在 TypeScript 7.0 失效的选项 [175a2a1](https://github.com/x-9lab/launch/commit/175a2a1bb6fc19718c428d057a1256e3bca079f1)
+- chore: 纳入 CLAUDE.md 与 batch-init skill [c3c57ad](https://github.com/x-9lab/launch/commit/c3c57ad5d37d0696ada820681227ba5e9de1e87c)
+
+### Fix
+- fix(pack): 运行时缓存不再被打进 npm 包 [743cf5f](https://github.com/x-9lab/launch/commit/743cf5f0c8676c7c5f323a35fd244955dd2a2e98)
+- fix(scan): 包名与脚本名撞上 Object.prototype 时的误判 [8cd36b7](https://github.com/x-9lab/launch/commit/8cd36b7d1cfb94822d0130c347355aff5888ab85)
+- fix(spawn): 修复子进程非 0 退出码时 promise 永远挂起 [12d7362](https://github.com/x-9lab/launch/commit/12d736292ec6309742f61fa819657e6f271e42ee)
+- fix(scan): B-POLYGLOT-2 修复单个包读取失败导致整个扫描中断 [3f1e46b](https://github.com/x-9lab/launch/commit/3f1e46bface61debd76cff604f7aedcc9b3732a9)
+
+### Refactor
+- refactor(registry): B-POLYGLOT-3 抽离包信息注册表 [c8b318a](https://github.com/x-9lab/launch/commit/c8b318a41b8475ea1528d0cb4999b134d90cda79)
+
 ## v1.3.0
 
 ### ⚠️ 升级须知
