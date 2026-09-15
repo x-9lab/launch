@@ -301,10 +301,10 @@
   dependencies:
     chalk "4.1.0"
 
-"@x-drive/utils@1.1.26":
-  version "1.1.26"
-  resolved "https://registry.npmmirror.com/@x-drive/utils/-/utils-1.1.26.tgz#2e2b9b78ef85a04c35e16fd37e686d939393d1dc"
-  integrity sha512-w6glf/zDHDXPj4UZ4VSm9RfXauNETtBPMgJvRg//wGQxq8r5PbUjFJlfLTC4LE3JlkfueNqAhS+tyc1yFDRILQ==
+"@x-drive/utils@1.1.32":
+  version "1.1.32"
+  resolved "https://registry.yarnpkg.com/@x-drive/utils/-/utils-1.1.32.tgz#79c786900386817e637026435c8f50745a6a36dd"
+  integrity sha512-o/m5FUm+xCXR0Y2sQhbyHyTud1Vv1VByVOQtIlS8Ib4lqeaLGSz2jCSqmUeF/IcYJgBD2/6eLm11WGVcp3f+fg==
 
 ansi-escapes@^4.3.2:
   version "4.3.2"

@@ -1,9 +1,10 @@
-import { copy, isBoolean, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
 import { genBuildSequence, getBuildSequence, getPackByName, getPackages, setBuildSequence, setPack, setPackages } from "./registry";
+import { copy, isBoolean, isExecutable, isObject, isUndefined, merge } from "@x-drive/utils";
 import { checkFileStat, spawn, resolveCommand, walk, colors, SpawnError } from "./helper";
-import { resolveManifest } from "./manifest";
+import { warn, logProcess, logSuccess, error, info } from "./helper";
 import type { IPack, IPackages } from "./helper";
 import { EXIT_PACK, MAGIC_CODE } from "./consts";
+import { resolveManifest } from "./manifest";
 import sysBoot from "./@inquirer/sys-boot";
 import build from "./@inquirer/build";
 import start from "./@inquirer/start";
@@ -12,6 +13,7 @@ import path, { join } from "path";
 import dev from "./@inquirer/dev";
 import inquirer from "inquirer";
 import fs from "fs";
+
 
 /**菜单项 */
 interface MenuItem {
@@ -400,6 +402,24 @@ class Launch {
 
     /**钩子 */
     #menuHooks: LaunchHooks = {};
+
+    /**日志对象 */
+    clientLogger = {
+        info
+        , warn
+        , logSuccess
+        , logProcess
+        , error
+    }
+
+    /**工具对象 */
+    clientUtils = {
+        checkFileStat
+        , walk
+    }
+
+    /**Colors */
+    colors = colors;
 
     /**spawn 模式执行一条命令 */
     spawn = spawn;

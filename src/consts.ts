@@ -12,3 +12,15 @@ export const EXIT_PACK: IPack = {
 
 /**奇怪的数字 */
 export const MAGIC_CODE = 709394;
+
+/**点 */
+export const DOT = "•";
+
+/**信息对应的颜色类型 */
+export const LOG_TYPE = {
+    "info": "blue"
+    , "warn": "yellow"
+    , "error": "red"
+    , "success": "green"
+    , "process": "magenta"
+}

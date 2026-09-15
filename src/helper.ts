@@ -2,13 +2,12 @@ import type { CommonSpawnOptions } from "child_process";
 // registry 对本模块只有 import type, 编译后擦除, 不构成运行时环
 import { getPackByName } from "./registry";
 import { isArray } from "@x-drive/utils";
+import { DOT, LOG_TYPE } from "./consts";
 import crossSpawn from "cross-spawn";
 import colors from "colors/safe";
 import inquirer from "inquirer";
 import path from "path";
 import fs from "fs";
-
-
 
 
 type Inquirer = typeof inquirer;
@@ -274,3 +273,42 @@ function walk(path: string, floor: number, callback: WalkCallback) {
     });
 }
 export { walk }
+
+/**输出信息 */
+function log(type: keyof typeof LOG_TYPE, ...msgs: any[]) {
+    msgs.unshift(
+        colors[LOG_TYPE[type]](DOT)
+    );
+    console.log.apply(console, msgs);
+}
+export { log }
+
+
+/**输出一般信息 */
+function info(...msgs: any[]) {
+    log.apply(console, ["info", ...msgs]);
+}
+export { info }
+
+/**输出告警信息 */
+function warn(...msgs: any[]) {
+    log.apply(console, ["warn", ...msgs]);
+}
+export { warn }
+
+/**输出告警信息 */
+function success(...msgs: any[]) {
+    log.apply(console, ["success", ...msgs]);
+}
+export { success as logSuccess }
+
+/**输出错误信息 */
+function error(...msgs: any[]) {
+    log.apply(console, ["error", ...msgs]);
+}
+export { error }
+
+function logProcess(...msgs: any[]) {
+    log.apply(console, ["process", ...msgs]);
+}
+export { logProcess }
